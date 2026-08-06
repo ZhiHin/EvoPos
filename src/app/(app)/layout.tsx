@@ -62,6 +62,15 @@ export default async function AppLayout({ children }: LayoutProps<'/'>) {
           },
         ]
       : []),
+    ...(ctx.tenant.permissions.has('stock.view')
+      ? [
+          {
+            href: '/inventory',
+            label: 'Inventory',
+            icon: 'inventory' as const,
+          },
+        ]
+      : []),
     ...(ctx.tenant.permissions.has('promotion.view')
       ? [
           {

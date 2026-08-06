@@ -6,6 +6,7 @@ import {
   BookOpen,
   Building2,
   LayoutDashboard,
+  Package,
   Settings,
   SlidersHorizontal,
   Table2,
@@ -38,6 +39,7 @@ export interface NavItem {
     | 'menu'
     | 'modifiers'
     | 'promotions'
+    | 'inventory'
     | 'takings'
     | 'settings'
 }
@@ -52,6 +54,7 @@ const ICONS = {
   menu: BookOpen,
   modifiers: SlidersHorizontal,
   promotions: TicketPercent,
+  inventory: Package,
   settings: Settings,
 } as const
 

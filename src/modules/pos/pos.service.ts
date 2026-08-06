@@ -15,6 +15,10 @@ import {
 import { ConflictError, NotFoundError } from '@/lib/errors'
 import { recordAuditIn } from '@/modules/audit/audit.service'
 import type { BranchActorContext } from '@/modules/branch/branch.service'
+import {
+  deductForOrderLines,
+  type StockShortfall,
+} from '@/modules/inventory/inventory.service'
 import { resolveStationForItem } from '@/modules/kitchen/kitchen.service'
 import { loadItemModifierRulesIn } from '@/modules/modifier/modifier.service'
 import {
@@ -89,7 +93,7 @@ export async function placeStaffOrder(
   ctx: BranchActorContext,
   sessionId: string,
   input: StaffOrderInput,
-): Promise<{ lineIds: string[] }> {
+): Promise<{ lineIds: string[]; shortfalls: StockShortfall[] }> {
   return withTenant(ctx, async (tx) => {
     const [session] = await tx
       .select({
@@ -225,6 +229,22 @@ export async function placeStaffOrder(
       lineIds.push(created.id)
     }
 
+    /**
+     * Stock moves in the same transaction as the order. If the deduction were
+     * a separate call, an order could be recorded and its ingredients not,
+     * and the drift would be silent until someone counted the shelf.
+     *
+     * Shortfalls are returned, never enforced — see `deductForOrderLines`.
+     */
+    const { shortfalls } = await deductForOrderLines(
+      tx,
+      ctx.restaurantId,
+      session.branchId,
+      sessionId,
+      lineIds,
+      ctx.userId,
+    )
+
     await recordAuditIn(tx, {
       restaurantId: ctx.restaurantId,
       actorUserId: ctx.userId,
@@ -236,7 +256,7 @@ export async function placeStaffOrder(
       userAgent: ctx.userAgent,
     })
 
-    return { lineIds }
+    return { lineIds, shortfalls }
   })
 }
 

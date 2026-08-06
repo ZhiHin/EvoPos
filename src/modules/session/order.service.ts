@@ -12,6 +12,11 @@ import {
 import { ConflictError, NotFoundError, ValidationError } from '@/lib/errors'
 import { recordAuditIn } from '@/modules/audit/audit.service'
 import type { BranchActorContext } from '@/modules/branch/branch.service'
+import {
+  branchForSessionIn,
+  deductForOrderLines,
+  returnForVoidedLine,
+} from '@/modules/inventory/inventory.service'
 import { resolveStationForItem } from '@/modules/kitchen/kitchen.service'
 import { loadItemModifierRulesIn } from '@/modules/modifier/modifier.service'
 import {
@@ -201,6 +206,24 @@ export async function placeDinerOrder(
       lineTotalMinor: total.lineTotalMinor,
     })
   }
+
+  /**
+   * A QR order consumes ingredients exactly as a staff order does. Deducting
+   * on only one of the two paths is how an inventory system ends up wrong by
+   * precisely the proportion of self-ordering customers.
+   *
+   * No `userId`: nobody on staff placed this, and attributing it to whoever
+   * happened to be logged in elsewhere would put a name against an action
+   * they did not take.
+   */
+  await deductForOrderLines(
+    tx,
+    diner.restaurantId,
+    session.branchId,
+    diner.sessionId,
+    placed.map((line) => line.id),
+    null,
+  )
 
   return placed
 }
@@ -393,6 +416,30 @@ export async function voidOrderLine(
         notes: reason ?? line.nameSnapshot,
       })
       .where(eq(orderLines.id, orderLineId))
+
+    /**
+     * A voided line puts its ingredients back, as a `return` movement rather
+     * than by unwinding the consumption. The ledger is append-only because
+     * "why do we think we have 4 kg?" must always have an answer, and a
+     * deleted row is the one answer it cannot give.
+     *
+     * This is honest only for a dish that was never made. A voided line that
+     * the kitchen already cooked has genuinely consumed its ingredients, and
+     * the correct record is wastage — which is why voiding after the ticket
+     * has been started is worth revisiting once wastage-on-void is a
+     * question anyone has asked.
+     */
+    const branchId = await branchForSessionIn(tx, line.sessionId)
+    if (branchId) {
+      await returnForVoidedLine(
+        tx,
+        ctx.restaurantId,
+        branchId,
+        line.sessionId,
+        orderLineId,
+        ctx.userId,
+      )
+    }
 
     await recordAuditIn(tx, {
       restaurantId: ctx.restaurantId,

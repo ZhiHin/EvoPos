@@ -133,6 +133,39 @@ export const PERMISSIONS: readonly PermissionDefinition[] = [
     advance: 'Move a ticket through preparation',
     'station.manage': 'Create and configure kitchen stations',
   }),
+  ...define('ingredient', {
+    view: 'View ingredients and what they cost',
+    manage: 'Create and edit ingredients',
+    /** A recipe decides what an order consumes, so it moves real stock. */
+    'recipe.manage': 'Set what each menu item consumes',
+  }),
+  ...define('stock', {
+    view: 'View stock levels and movements',
+    /**
+     * Counting corrects the books to match the shelf. It is the one movement
+     * with no document behind it, which is exactly why it is separated from
+     * receiving and kept away from anyone who can also order goods.
+     */
+    count: 'Record a stock count and correct the level',
+    /** Wastage writes off value, so it is not merged with counting. */
+    waste: 'Record wastage, spoilage or breakage',
+    transfer: 'Move stock between branches',
+  }),
+  ...define('supplier', {
+    view: 'View suppliers and their terms',
+    manage: 'Create and edit suppliers',
+  }),
+  ...define('purchase', {
+    view: 'View purchase orders',
+    create: 'Raise a purchase order',
+    /**
+     * Approving commits the restaurant to a spend. Kept apart from raising
+     * one so a single person cannot both order and authorise.
+     */
+    approve: 'Approve a purchase order and send it to the supplier',
+    receive: 'Receive goods against a purchase order',
+    cancel: 'Cancel a purchase order',
+  }),
   ...define('printer', {
     manage: 'Configure printers and where each ticket is sent',
   }),
@@ -324,6 +357,20 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'staff.view',
       'staff.invite',
       'staff.update',
+      'ingredient.view',
+      'ingredient.manage',
+      'ingredient.recipe.manage',
+      'stock.view',
+      'stock.count',
+      'stock.waste',
+      'stock.transfer',
+      'supplier.view',
+      'supplier.manage',
+      'purchase.view',
+      'purchase.create',
+      'purchase.approve',
+      'purchase.receive',
+      'purchase.cancel',
       'audit.view',
       'settings.view',
     ],
@@ -427,13 +474,41 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       // The kitchen display is the whole of this role's job.
       'kitchen.view',
       'kitchen.advance',
+      /**
+       * The kitchen is where things get dropped, burnt and left out. Whoever
+       * ruins the ingredient is the only person who can say so at the moment
+       * it happens; routing it through a manager means it gets written off
+       * days later, or not at all.
+       */
+      'stock.view',
+      'stock.waste',
     ],
   },
   {
     key: 'inventory',
     name: 'Inventory Staff',
     description: 'Manages stock, suppliers and goods receiving.',
-    permissions: ['branch.view'],
+    /**
+     * Raises purchase orders but cannot approve them. The separation is the
+     * point: one person ordering, authorising and receiving their own goods
+     * is how invoices for deliveries nobody saw get paid.
+     */
+    permissions: [
+      'branch.view',
+      'ingredient.view',
+      'ingredient.manage',
+      'ingredient.recipe.manage',
+      'stock.view',
+      'stock.count',
+      'stock.waste',
+      'stock.transfer',
+      'supplier.view',
+      'supplier.manage',
+      'purchase.view',
+      'purchase.create',
+      'purchase.receive',
+      'purchase.cancel',
+    ],
   },
   {
     key: 'customer',
