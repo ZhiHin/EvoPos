@@ -13,7 +13,7 @@ security considerations, test cases, documentation.
 | --- | --- | --- | --- |
 | **0** | **Foundation** ✅ | Scaffold, Postgres + RLS, auth, RBAC, tenancy, audit trail, module conventions | — |
 | **1** | **Restaurant structure** ✅ | Branches, floors, tables, QR token engine, settings (profile/tax/service charge) | 0 |
-| 2 | Universal Menu Engine | Nested categories, items, custom attributes, availability, branch overrides | 1 |
+| **2** | **Universal Menu Engine** ✅ | Nested categories, items, custom attributes, tags/allergens, availability, branch overrides | 1 |
 | 3 | Modifiers & Combos | Modifier groups, selection rules, combo builder, nested modifiers | 2 |
 | 4 | Dining Session & QR ordering | The core business object; join table, personal carts, call waiter | 1, 3 |
 | 5 | Order & POS | Dine-in / takeaway / delivery, hold, merge, transfer table | 4 |

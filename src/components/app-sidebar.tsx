@@ -2,7 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Building2, LayoutDashboard, Settings, Table2 } from 'lucide-react'
+import {
+  BookOpen,
+  Building2,
+  LayoutDashboard,
+  Settings,
+  Table2,
+} from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -18,13 +24,14 @@ import { cn } from '@/lib/utils'
 export interface NavItem {
   href: string
   label: string
-  icon: 'dashboard' | 'branches' | 'tables' | 'settings'
+  icon: 'dashboard' | 'branches' | 'tables' | 'menu' | 'settings'
 }
 
 const ICONS = {
   dashboard: LayoutDashboard,
   branches: Building2,
   tables: Table2,
+  menu: BookOpen,
   settings: Settings,
 } as const
 
