@@ -35,6 +35,9 @@ export default async function AppLayout({ children }: LayoutProps<'/'>) {
    */
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: 'dashboard' as const },
+    ...(ctx.tenant.permissions.has('session.view')
+      ? [{ href: '/floor', label: 'Floor', icon: 'floor' as const }]
+      : []),
     ...(ctx.tenant.permissions.has('branch.view')
       ? [{ href: '/branches', label: 'Branches', icon: 'branches' as const }]
       : []),

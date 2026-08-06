@@ -50,6 +50,13 @@
       "when": 1786017027308,
       "tag": "0006_dining_sessions",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1786019844713,
+      "tag": "0007_pos",
+      "breakpoints": true
     }
   ]
 }

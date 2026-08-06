@@ -106,6 +106,21 @@ export const PERMISSIONS: readonly PermissionDefinition[] = [
     /** Voiding removes an item from a bill, so it is its own capability. */
     void: 'Void an order line',
   }),
+  ...define('pos', {
+    takeaway: 'Create takeaway and delivery orders',
+    merge: 'Merge two bills into one',
+    transfer: 'Move a session to a different table',
+  }),
+  /**
+   * Discounts are their own module, not part of `order`.
+   *
+   * Comping a dish reduces what the restaurant is paid, and the person who
+   * may take an order is very often not the person who may decide it is free.
+   */
+  ...define('discount', {
+    apply: 'Apply a manual discount to a bill',
+    remove: 'Remove a manual discount from a bill',
+  }),
   ...define('service', {
     view: 'See waiter calls and bill requests',
     resolve: 'Mark a waiter call or bill request as handled',
@@ -211,6 +226,11 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'order.view',
       'order.create',
       'order.void',
+      'pos.takeaway',
+      'pos.merge',
+      'pos.transfer',
+      'discount.apply',
+      'discount.remove',
       'service.view',
       'service.resolve',
       'staff.view',
@@ -244,6 +264,10 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'session.close',
       'order.view',
       'order.create',
+      'pos.takeaway',
+      'pos.merge',
+      // Not `discount.apply`: a cashier takes payment, a manager decides
+      // something costs less than the menu says.
       'service.view',
       'service.resolve',
     ],
@@ -273,6 +297,7 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'session.manage',
       'order.view',
       'order.create',
+      'pos.transfer',
       'service.view',
       'service.resolve',
     ],

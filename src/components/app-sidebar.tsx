@@ -9,6 +9,7 @@ import {
   Settings,
   SlidersHorizontal,
   Table2,
+  UtensilsCrossed,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -27,6 +28,7 @@ export interface NavItem {
   label: string
   icon:
     | 'dashboard'
+    | 'floor'
     | 'branches'
     | 'tables'
     | 'menu'
@@ -36,6 +38,7 @@ export interface NavItem {
 
 const ICONS = {
   dashboard: LayoutDashboard,
+  floor: UtensilsCrossed,
   branches: Building2,
   tables: Table2,
   menu: BookOpen,

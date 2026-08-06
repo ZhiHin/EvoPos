@@ -280,10 +280,13 @@ export async function closeSession(
         ),
       )
 
-    await tx
-      .update(diningTables)
-      .set({ status: 'available' })
-      .where(eq(diningTables.id, session.tableId))
+    // Takeaway and delivery sessions have no table to free.
+    if (session.tableId) {
+      await tx
+        .update(diningTables)
+        .set({ status: 'available' })
+        .where(eq(diningTables.id, session.tableId))
+    }
 
     await recordAuditIn(tx, {
       restaurantId: ctx.restaurantId,
@@ -301,9 +304,12 @@ export async function closeSession(
 
 export interface SessionSummary {
   id: string
-  tableId: string
-  tableCode: string
+  /** Null for takeaway and delivery. */
+  tableId: string | null
+  tableCode: string | null
+  type: 'dine_in' | 'takeaway' | 'delivery'
   status: 'open' | 'bill_requested' | 'closed' | 'abandoned'
+  customerName: string | null
   guestCount: number | null
   openedAt: Date
   memberCount: number
@@ -322,12 +328,19 @@ export async function listLiveSessions(
         id: diningSessions.id,
         tableId: diningSessions.tableId,
         tableCode: diningTables.code,
+        type: diningSessions.type,
         status: diningSessions.status,
+        customerName: diningSessions.customerName,
         guestCount: diningSessions.guestCount,
         openedAt: diningSessions.openedAt,
       })
       .from(diningSessions)
-      .innerJoin(diningTables, eq(diningTables.id, diningSessions.tableId))
+      /**
+       * LEFT, not INNER. Takeaway and delivery sessions have no table, and an
+       * inner join would silently drop every one of them from the floor view
+       * — the orders would exist, be payable, and be invisible to staff.
+       */
+      .leftJoin(diningTables, eq(diningTables.id, diningSessions.tableId))
       .where(
         and(
           eq(diningSessions.restaurantId, restaurantId),

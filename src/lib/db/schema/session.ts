@@ -39,6 +39,30 @@ export const diningSessionStatus = pgEnum('dining_session_status', [
   'abandoned',
 ])
 
+/**
+ * Fulfilment type.
+ *
+ * Takeaway and delivery are sessions without a table, not a parallel order
+ * model. One bill model means Smart Bill in Phase 6 splits a delivery order
+ * with exactly the same code it splits a dinner table — and the partial
+ * unique index keeps working unchanged, because NULL table ids are distinct
+ * and unlimited takeaway sessions can coexist.
+ *
+ * It also means "hold order" needs no state of its own: for dine-in the table
+ * is the hold, and for takeaway an open session with no table already IS a
+ * parked transaction waiting to be resumed.
+ */
+export const diningSessionType = pgEnum('dining_session_type', [
+  'dine_in',
+  'takeaway',
+  'delivery',
+])
+
+export const sessionDiscountType = pgEnum('session_discount_type', [
+  'percentage',
+  'fixed',
+])
+
 export const diningSessions = pgTable(
   'dining_sessions',
   {
@@ -49,11 +73,22 @@ export const diningSessions = pgTable(
     branchId: uuid('branch_id')
       .notNull()
       .references(() => branches.id, { onDelete: 'cascade' }),
-    tableId: uuid('table_id')
-      .notNull()
-      .references(() => diningTables.id, { onDelete: 'restrict' }),
+    /** Null for takeaway and delivery — there is no table to sit at. */
+    tableId: uuid('table_id').references(() => diningTables.id, {
+      onDelete: 'restrict',
+    }),
 
+    type: diningSessionType('type').notNull().default('dine_in'),
     status: diningSessionStatus('status').notNull().default('open'),
+
+    /**
+     * Minimal customer capture for takeaway and delivery. Deliberately plain
+     * columns rather than a link to a CRM record — the CRM arrives in Phase
+     * 11, and a walk-in giving a name for a paper bag should not require one.
+     */
+    customerName: text('customer_name'),
+    customerPhone: text('customer_phone'),
+    deliveryAddress: text('delivery_address'),
 
     /** Null when a diner opened it by scanning rather than a staff member. */
     openedByUserId: uuid('opened_by_user_id').references(() => users.id, {
@@ -375,6 +410,60 @@ export const serviceRequests = pgTable(
       for: 'insert',
       to: appRole,
       withCheck: sql`${t.sessionId} = ${currentSessionId()}`,
+    }),
+  ],
+)
+
+/**
+ * Manual, staff-applied discounts.
+ *
+ * Distinct from the Phase 9 promotion engine: that decides discounts from
+ * rules, this records a human deciding something costs less. Rows are never
+ * deleted — a removed discount keeps its row with `removedAt` set, because
+ * "who comped this, and who took it back off" is the first question asked
+ * when the till does not balance.
+ */
+export const sessionDiscounts = pgTable(
+  'session_discounts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    restaurantId: uuid('restaurant_id')
+      .notNull()
+      .references(() => restaurants.id, { onDelete: 'cascade' }),
+    sessionId: uuid('session_id')
+      .notNull()
+      .references(() => diningSessions.id, { onDelete: 'cascade' }),
+
+    type: sessionDiscountType('type').notNull(),
+    /** Basis points when percentage, minor units when fixed. */
+    value: integer('value').notNull(),
+    reason: text('reason').notNull(),
+
+    appliedByUserId: uuid('applied_by_user_id').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+    removedAt: timestamp('removed_at', { withTimezone: true }),
+    removedByUserId: uuid('removed_by_user_id').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+
+    createdAt: timestamps.createdAt,
+  },
+  (t) => [
+    index('session_discounts_session_idx').on(t.sessionId),
+    index('session_discounts_restaurant_idx').on(t.restaurantId),
+
+    tenantPolicy('session_discounts_tenant_isolation', t.restaurantId),
+
+    /**
+     * A diner may see a discount on their own bill but never create one.
+     * There is no member INSERT policy here, deliberately.
+     */
+    pgPolicy('session_discounts_member_read', {
+      as: 'permissive',
+      for: 'select',
+      to: appRole,
+      using: sql`${t.sessionId} = ${currentSessionId()}`,
     }),
   ],
 )

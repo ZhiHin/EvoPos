@@ -16,7 +16,7 @@ security considerations, test cases, documentation.
 | **2** | **Universal Menu Engine** ✅ | Nested categories, items, custom attributes, tags/allergens, availability, branch overrides | 1 |
 | **3** | **Modifiers & Combos** ✅ | Modifier groups, selection rules, combo builder, pure pricing engine | 2 |
 | **4** | **Dining Session & QR ordering** ✅ | The core business object; join table, diner context, order lines with frozen prices, call waiter | 1, 3 |
-| 5 | Order & POS | Dine-in / takeaway / delivery, hold, merge, transfer table | 4 |
+| **5** | **Order & POS** ✅ | Dine-in / takeaway / delivery, merge, transfer, discounts, bill engine, floor view | 4 |
 | 6 | **Smart Bill Engine** | Split evenly / by item / by quantity / by percentage, shared items, pay-for-others, partial settlement, leave-early | 5 |
 | 7 | Payments | Cash, card, e-wallets, DuitNow, gateway webhooks, mixed payment, reconciliation | 6 |
 | 8 | Kitchen & printing | KDS, stations, queues, timers, printer routing rules, notifications | 5 |
