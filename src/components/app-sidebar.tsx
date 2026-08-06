@@ -9,6 +9,7 @@ import {
   Settings,
   SlidersHorizontal,
   Table2,
+  TicketPercent,
   UtensilsCrossed,
   Wallet,
   ChefHat,
@@ -36,6 +37,7 @@ export interface NavItem {
     | 'tables'
     | 'menu'
     | 'modifiers'
+    | 'promotions'
     | 'takings'
     | 'settings'
 }
@@ -49,6 +51,7 @@ const ICONS = {
   tables: Table2,
   menu: BookOpen,
   modifiers: SlidersHorizontal,
+  promotions: TicketPercent,
   settings: Settings,
 } as const
 

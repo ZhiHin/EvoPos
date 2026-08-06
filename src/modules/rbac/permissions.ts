@@ -106,6 +106,27 @@ export const PERMISSIONS: readonly PermissionDefinition[] = [
     /** Voiding removes an item from a bill, so it is its own capability. */
     void: 'Void an order line',
   }),
+  ...define('promotion', {
+    view: 'View promotions and how they are configured',
+    create: 'Create a promotion',
+    update: 'Edit a promotion, including its discount and rules',
+    delete: 'Delete a promotion',
+  }),
+  ...define('voucher', {
+    view: 'View voucher codes and their redemptions',
+    issue: 'Issue voucher codes',
+    redeem: 'Redeem a voucher code against a bill',
+  }),
+  ...define('customer', {
+    view: 'View customer records and their loyalty balance',
+    manage: 'Create and edit customer records',
+  }),
+  ...define('loyalty', {
+    view: 'View loyalty tiers and point history',
+    manage: 'Configure tiers and earning rules',
+    /** Manual adjustment is a money-adjacent act, so it stands alone. */
+    adjust: 'Manually add or remove loyalty points',
+  }),
   ...define('kitchen', {
     view: 'View the kitchen display',
     /** Advancing a ticket: started, ready, served. */
@@ -266,6 +287,18 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'order.view',
       'order.create',
       'order.void',
+      'promotion.view',
+      'promotion.create',
+      'promotion.update',
+      'promotion.delete',
+      'voucher.view',
+      'voucher.issue',
+      'voucher.redeem',
+      'customer.view',
+      'customer.manage',
+      'loyalty.view',
+      'loyalty.manage',
+      'loyalty.adjust',
       'kitchen.view',
       'kitchen.advance',
       'kitchen.station.manage',
@@ -323,6 +356,13 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'payment.view',
       'payment.take',
       'reconciliation.view',
+      // A cashier redeems a voucher and looks up a member at the till, but
+      // does not decide what promotions exist or adjust anyone's points.
+      'promotion.view',
+      'voucher.view',
+      'voucher.redeem',
+      'customer.view',
+      'loyalty.view',
       'bill.view',
       'bill.split',
       'bill.lock',

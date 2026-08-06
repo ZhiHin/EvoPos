@@ -15,6 +15,7 @@ import { readSettlement } from '@/modules/payment/payment.service'
 import { TakePaymentDialog } from '@/modules/payment/ui/take-payment-dialog'
 import { SplitPanel } from '@/modules/bill/ui/split-panel'
 import { computeSessionTotals } from '@/modules/pos/pos.service'
+import { PromotionPanel } from '@/modules/promotion/ui/promotion-panel'
 import {
   CloseSessionButton,
   RemoveDiscountButton,
@@ -200,7 +201,7 @@ export default async function SessionPage({
                     {discount.type === 'percentage'
                       ? `${discount.value / 100}%`
                       : formatMoney(discount.value, settings.currency)}
-                    {canRemoveDiscount && (
+                    {canRemoveDiscount && discount.source === 'manual' && (
                       <RemoveDiscountButton discountId={discount.id} />
                     )}
                   </dd>
@@ -266,6 +267,18 @@ export default async function SessionPage({
                 </div>
               </dl>
             )}
+
+            {ctx.tenant.permissions.has('promotion.view') &&
+              !settlement.isSettled && (
+                <div className="mt-3">
+                  <PromotionPanel
+                    sessionId={session.id}
+                    canRedeemVoucher={ctx.tenant.permissions.has(
+                      'voucher.redeem',
+                    )}
+                  />
+                </div>
+              )}
 
             {ctx.tenant.permissions.has('payment.take') &&
               !settlement.isSettled && (

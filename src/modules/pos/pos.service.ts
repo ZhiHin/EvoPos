@@ -21,6 +21,7 @@ import {
   calculateLineTotal,
   validateModifierSelections,
 } from '@/modules/modifier/pricing'
+import { readSessionPromotionDiscount } from '@/modules/promotion/promotion.service'
 import { calculateBill, type BillTotals } from './bill'
 import type {
   ApplyDiscountInput,
@@ -615,6 +616,12 @@ export interface SessionTotals extends BillTotals {
     type: 'percentage' | 'fixed'
     value: number
     reason: string
+    /**
+     * A promotion is removed by re-evaluating or by voiding its voucher, not
+     * by deleting a discount row that does not exist. The till needs to know
+     * which kind it is looking at before offering a remove button.
+     */
+    source: 'manual' | 'promotion'
   }[]
 }
 
@@ -652,7 +659,7 @@ export async function computeSessionTotals(
       ),
     )
 
-  const discounts = await tx
+  const manual = await tx
     .select({
       id: sessionDiscounts.id,
       type: sessionDiscounts.type,
@@ -666,6 +673,29 @@ export async function computeSessionTotals(
         isNull(sessionDiscounts.removedAt),
       ),
     )
+
+  /**
+   * Promotions reduce the bill through the same pipeline as a manual
+   * discount, so they land before service charge and tax like every other
+   * reduction. A separate path would be a second order of operations, and the
+   * two would disagree the first time either changed.
+   *
+   * The engine has already resolved each promotion to an exact amount, so it
+   * enters as a fixed discount — re-deriving a percentage here would round a
+   * second time against a subtotal the engine never saw.
+   */
+  const promotional = await readSessionPromotionDiscount(tx, sessionId)
+
+  const discounts: SessionTotals['discounts'] = [
+    ...manual.map((d) => ({ ...d, source: 'manual' as const })),
+    ...promotional.entries.map((entry, index) => ({
+      id: `promotion:${entry.promotionId || index}`,
+      type: 'fixed' as const,
+      value: entry.discountMinor,
+      reason: entry.name,
+      source: 'promotion' as const,
+    })),
+  ]
 
   const totals = calculateBill(
     lines.map((l) => l.lineTotalMinor),

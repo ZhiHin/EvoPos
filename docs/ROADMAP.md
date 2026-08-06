@@ -20,7 +20,7 @@ security considerations, test cases, documentation.
 | **6** | **Smart Bill Engine** ✅ | Exact-to-the-cent splitting: by owner / evenly / by percentage / by item, shared items, locked shares for leave-early | 5 |
 | **7** | **Payments** ✅ | Cash, terminal card/e-wallet, transfer, mixed payment, idempotency, voids, refunds, reconciliation. Online gateway deferred | 6 |
 | **8** | **Kitchen & printing** ✅ | KDS with stations, queues and timers, forward-only transitions, station routing, ticket/receipt rendering. Physical printing needs an on-site agent | 5 |
-| 9 | Promotions & Loyalty | Rule engine, stacking and priority, membership tiers, points, rewards | 5 |
+| **9** | **Promotions & Loyalty** ✅ | Pure rule engine, stacking and priority, usage caps, vouchers, membership tiers, points ledger. Accrual wires into settlement once Phase 11 attaches a member to a bill | 5 |
 | 10 | Inventory & Suppliers | Ingredients, recipes, auto-deduction, purchase orders, goods receiving | 2, 5 |
 | 11 | CRM, Reservations, Staff | Customer profiles, segmentation, bookings, waitlist, shifts, attendance | 4 |
 | 12 | Dashboard & Reporting | Real-time operations, sales/profit/tax reports, PDF/Excel/CSV export | 5, 7 |
