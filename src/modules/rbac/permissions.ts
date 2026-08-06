@@ -106,6 +106,17 @@ export const PERMISSIONS: readonly PermissionDefinition[] = [
     /** Voiding removes an item from a bill, so it is its own capability. */
     void: 'Void an order line',
   }),
+  ...define('bill', {
+    view: 'View a bill and how it has been split',
+    split: 'Split a bill between the people at a table',
+    /**
+     * Locking freezes what each person owes. Separate from `split` because
+     * previewing a split changes nothing, while locking one creates an
+     * amount a customer will be held to.
+     */
+    lock: 'Lock a split so the amounts stop moving',
+    void: 'Void a locked split and start again',
+  }),
   ...define('pos', {
     takeaway: 'Create takeaway and delivery orders',
     merge: 'Merge two bills into one',
@@ -226,6 +237,10 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'order.view',
       'order.create',
       'order.void',
+      'bill.view',
+      'bill.split',
+      'bill.lock',
+      'bill.void',
       'pos.takeaway',
       'pos.merge',
       'pos.transfer',
@@ -264,10 +279,14 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'session.close',
       'order.view',
       'order.create',
+      // Splitting a bill is the core of what a cashier does at settlement.
+      'bill.view',
+      'bill.split',
+      'bill.lock',
       'pos.takeaway',
       'pos.merge',
-      // Not `discount.apply`: a cashier takes payment, a manager decides
-      // something costs less than the menu says.
+      // Not `discount.apply`, and not `bill.void`: a cashier takes payment, a
+      // manager decides something costs less or undoes an agreed split.
       'service.view',
       'service.resolve',
     ],
@@ -297,6 +316,7 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'session.manage',
       'order.view',
       'order.create',
+      'bill.view',
       'pos.transfer',
       'service.view',
       'service.resolve',

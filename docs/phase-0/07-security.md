@@ -21,7 +21,7 @@ Two independent layers, and the redundancy is deliberate.
 
 **Database (primary).** Every tenant-scoped table has RLS enabled with a policy
 comparing `restaurant_id` to `current_setting('app.tenant_id')`. The
-application connects as `ros_app`: owns nothing, creates nothing, no
+application connects as `evoapp`: owns nothing, creates nothing, no
 `BYPASSRLS`.
 
 Three details carry disproportionate weight:
@@ -59,7 +59,7 @@ operation. It is the worst kind of bug, so it gets its own guard and its own
 | `users`, `sessions`, `oauth_accounts`, `verification_tokens` have no RLS | Login must find a user by email before any tenant is known; a policy here would make authentication impossible | Access confined to the auth module; these tables hold no tenant business data |
 | `permissions` has no RLS | Global registry, identical for every tenant | Read-only in practice; written only by the seed |
 | Branch scoping is application-enforced | It depends on the membership, not on a column of the row being read — not expressible as a policy on that row | `assertBranchAccess` in the guard layer |
-| `ros_owner` bypasses RLS | Required for migrations and backups | Never in `DATABASE_URL`; asserted at boot |
+| `evoadmin` bypasses RLS | Required for migrations and backups | Never in `DATABASE_URL`; asserted at boot |
 
 ## 2. Authentication
 

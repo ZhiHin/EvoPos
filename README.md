@@ -46,16 +46,16 @@ psql --version
 ### 2. Create the database and roles
 
 ```powershell
-createdb -U postgres ros
-psql -U postgres -d ros -f scripts/bootstrap.sql
+createdb -U postgres evopos
+psql -U postgres -d evopos -f scripts/bootstrap.sql
 ```
 
 `bootstrap.sql` creates two roles, and the split between them is the backbone
 of tenant isolation:
 
-- **`ros_owner`** — owns the tables, runs migrations. Exempt from RLS, as table
+- **`evoadmin`** — owns the tables, runs migrations. Exempt from RLS, as table
   owners always are.
-- **`ros_app`** — what the running application connects as. Owns nothing,
+- **`evoapp`** — what the running application connects as. Owns nothing,
   creates nothing, and every query it issues is filtered by policy.
 
 Change both passwords before using this anywhere but your own machine, and keep
@@ -63,16 +63,48 @@ them in sync with `.env`.
 
 ### 3. Configure environment
 
-A `.env` was generated for you with a random `AUTH_SECRET`. Update the two
-connection strings to match the passwords you set:
+Create a `.env` in the project root. It is gitignored and never committed.
+
+`src/lib/env.ts` validates these at import, so the app refuses to start rather
+than failing later on the first request that happens to need a missing value.
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `NODE_ENV` | no | `development` (default), `test` or `production` |
+| `APP_URL` | **yes** | Public base URL. Builds OAuth redirects and QR payloads |
+| `DATABASE_URL` | **yes** | Runtime connection, as `evoapp` — subject to RLS |
+| `DATABASE_URL_MIGRATOR` | **yes** | Migration connection, as `evoadmin` — owns the tables |
+| `AUTH_SECRET` | **yes** | HMAC key for session and one-time tokens. Min 32 chars |
+| `GOOGLE_CLIENT_ID` | no | Google sign-in. Both blank disables it |
+| `GOOGLE_CLIENT_SECRET` | no | Must be set together with the ID |
 
 ```
-DATABASE_URL=postgresql://ros_app:...@localhost:5432/ros
-DATABASE_URL_MIGRATOR=postgresql://ros_owner:...@localhost:5432/ros
+NODE_ENV=development
+APP_URL=http://localhost:3000
+
+DATABASE_URL=postgresql://evoapp:<app-password>@localhost:5432/evopos
+DATABASE_URL_MIGRATOR=postgresql://evoadmin:<admin-password>@localhost:5432/evopos
+
+AUTH_SECRET=
+
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
 ```
 
-Google login is optional. Leave `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
-blank to disable it; the button disappears from the sign-in page.
+Passwords are the ones you set in `scripts/bootstrap.sql`. Generate a secret
+with:
+
+```powershell
+node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+```
+
+**The two connection strings must use different roles.** Pointing
+`DATABASE_URL` at `evoadmin` silently disables every row-level security policy
+— see [Setup step 2](#2-create-the-database-and-roles). `npm run db:verify`
+checks this, and the app refuses to boot in production if it is wrong.
+
+Google login is optional. Leave both credentials blank to disable it; the
+button disappears from the sign-in page.
 
 ### 4. Migrate, seed, verify
 
@@ -107,7 +139,7 @@ transaction.
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm test` | Unit tests (no database needed) |
 | `npm run db:generate` | Generate a migration from schema changes |
-| `npm run db:migrate` | Apply migrations as `ros_owner` |
+| `npm run db:migrate` | Apply migrations as `evoadmin` |
 | `npm run db:seed` | Sync the permission registry |
 | `npm run db:studio` | Drizzle Studio |
 | `npm run db:verify` | Assert the runtime role is subject to RLS |
@@ -118,8 +150,8 @@ Integration tests need a live database and are skipped otherwise:
 $env:RUN_DB_TESTS=1; npm test
 ```
 
-Use **DBeaver** against `localhost:5432/ros` to inspect data. Connect as
-`ros_owner` to see everything, or as `ros_app` to see exactly what the
+Use **DBeaver** against `localhost:5432/evopos` to inspect data. Connect as
+`evoadmin` to see everything, or as `evoapp` to see exactly what the
 application sees — a fast way to sanity-check a policy.
 
 ---

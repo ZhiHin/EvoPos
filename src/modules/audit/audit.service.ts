@@ -5,7 +5,7 @@ import { auditLog } from '@/lib/db/schema'
 /**
  * Audit trail writer.
  *
- * The table grants ros_app INSERT and SELECT but no UPDATE or DELETE, so
+ * The table grants evoapp INSERT and SELECT but no UPDATE or DELETE, so
  * entries written here cannot later be edited or erased through the
  * application, only appended to.
  */

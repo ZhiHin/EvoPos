@@ -7,13 +7,13 @@ import postgres from 'postgres'
 /**
  * Migration entry point. Run with `npm run db:migrate`.
  *
- * Connects as `ros_owner` (DATABASE_URL_MIGRATOR), never as the runtime role.
+ * Connects as `evoadmin` (DATABASE_URL_MIGRATOR), never as the runtime role.
  */
 async function main() {
   const url = process.env.DATABASE_URL_MIGRATOR
   if (!url) {
     throw new Error(
-      'DATABASE_URL_MIGRATOR is not set. Migrations must run as the owner role, not as ros_app.',
+      'DATABASE_URL_MIGRATOR is not set. Migrations must run as the owner role, not as evoapp.',
     )
   }
 

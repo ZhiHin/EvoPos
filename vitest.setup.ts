@@ -16,9 +16,9 @@ const defaults: Record<string, string> = {
   NODE_ENV: 'test',
   APP_URL: 'http://localhost:3000',
   AUTH_SECRET: 'test-only-secret-value-that-is-long-enough-to-pass-validation',
-  DATABASE_URL: 'postgresql://ros_app:change_me_app@localhost:5432/ros',
+  DATABASE_URL: 'postgresql://evoapp:change_me_app@localhost:5432/evopos',
   DATABASE_URL_MIGRATOR:
-    'postgresql://ros_owner:change_me_owner@localhost:5432/ros',
+    'postgresql://evoadmin:change_me_owner@localhost:5432/evopos',
 }
 
 for (const [key, value] of Object.entries(defaults)) {

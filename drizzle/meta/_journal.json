@@ -57,6 +57,20 @@
       "when": 1786019844713,
       "tag": "0007_pos",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1786022242413,
+      "tag": "0008_rename_app_role",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1786023016682,
+      "tag": "0009_bill_splits",
+      "breakpoints": true
     }
   ]
 }

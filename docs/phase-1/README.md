@@ -72,7 +72,7 @@ and three policies scope reads to the single row bearing it:
 
 ```sql
 CREATE POLICY dining_tables_qr_lookup ON dining_tables
-  FOR SELECT TO ros_app
+  FOR SELECT TO evoapp
   USING (qr_token = nullif(current_setting('app.qr_token', true), ''));
 ```
 
@@ -104,17 +104,17 @@ tax on every bill.
 
 ## Two bugs found by running it
 
-**`bootstrap.sql` never granted `ros_owner` CREATE on the database.** Drizzle's
+**`bootstrap.sql` never granted `evoadmin` CREATE on the database.** Drizzle's
 migrator keeps its journal in a `drizzle` schema it creates on first run, so
 `db:migrate` failed on its first statement with "permission denied for
-database". `createdb -U postgres ros` leaves `postgres` as owner, and owning
+database". `createdb -U postgres evopos` leaves `postgres` as owner, and owning
 the `public` schema does not confer the right to create sibling schemas. This
 would have failed on **every machine**; no code review would have caught it.
 
 **`repinOwnerRoles` could not see any roles.** The maintenance script
-originally used `db` from `@/lib/db`, which connects as `ros_app` — RLS
+originally used `db` from `@/lib/db`, which connects as `evoapp` — RLS
 filtered every role row, so it found nothing and reported success while
-leaving owners without new permissions. It now opens its own `ros_owner`
+leaving owners without new permissions. It now opens its own `evoadmin`
 connection. Verified properly by stripping two permissions and watching them
 come back: 26 → 24 → repin → 26.
 

@@ -10,6 +10,8 @@ import { requirePermission } from '@/lib/auth/context'
 import { withTenant } from '@/lib/db'
 import { diningSessions, diningTables } from '@/lib/db/schema'
 import { formatMoney } from '@/lib/money'
+import { previewSplit, readLockedSplit } from '@/modules/bill/bill.service'
+import { SplitPanel } from '@/modules/bill/ui/split-panel'
 import { computeSessionTotals } from '@/modules/pos/pos.service'
 import {
   CloseSessionButton,
@@ -46,23 +48,38 @@ export default async function SessionPage({
 
     if (!session) return null
 
-    const [bill, totals] = await Promise.all([
+    const [bill, totals, split] = await Promise.all([
       readSessionBill(tx, sessionId, null),
       computeSessionTotals(tx, restaurantId, sessionId),
+      readLockedSplit(tx, restaurantId, sessionId),
     ])
 
-    return { session, bill, totals }
+    return { session, bill, totals, split }
   })
 
   // Absent, or another tenant's — indistinguishable, as it should be.
   if (!data) notFound()
 
   const settings = await getSettings(restaurantId, userId)
-  const { session, bill, totals } = data
+  const { session, bill, totals, split } = data
 
   const canVoid = ctx.tenant.permissions.has('order.void')
   const canClose = ctx.tenant.permissions.has('session.close')
   const canRemoveDiscount = ctx.tenant.permissions.has('discount.remove')
+  const canSplit = ctx.tenant.permissions.has('bill.split')
+
+  /**
+   * The default split, computed here so the panel renders with real amounts
+   * on first paint. Returns null when there is nobody at the table — a
+   * takeaway order has no members to split between, and that is an ordinary
+   * state rather than an error.
+   */
+  const initialPreview =
+    canSplit && !split
+      ? await previewSplit(restaurantId, userId, sessionId, {
+          kind: 'by_owner',
+        }).catch(() => null)
+      : null
 
   return (
     <div className="space-y-6">
@@ -234,6 +251,20 @@ export default async function SessionPage({
           </CardContent>
         </Card>
       </div>
+
+      {canSplit && (
+        <div className="max-w-md">
+          <SplitPanel
+            sessionId={session.id}
+            currency={settings.currency}
+            billTotalMinor={totals.totalMinor}
+            existingSplit={split}
+            initialPreview={initialPreview}
+            canLock={ctx.tenant.permissions.has('bill.lock')}
+            canVoid={ctx.tenant.permissions.has('bill.void')}
+          />
+        </div>
+      )}
     </div>
   )
 }

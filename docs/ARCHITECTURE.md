@@ -90,7 +90,7 @@ Two independent layers, and the redundancy is the point.
 
 **Database (primary).** Every tenant-scoped table has RLS enabled and a policy
 comparing `restaurant_id` against `current_setting('app.tenant_id')`. The
-application connects as `ros_app`, which owns nothing and has no `BYPASSRLS`.
+application connects as `evoapp`, which owns nothing and has no `BYPASSRLS`.
 A missing WHERE clause in application code leaks nothing, because the database
 refuses to return the rows regardless of what the SQL asked for.
 
@@ -118,7 +118,7 @@ connection never carries stale tenant context into the next request.
   before any tenant is known. Access is confined to the auth module.
 - **Branch scoping** is enforced in `assertBranchAccess`, not by policy — it
   depends on the membership, not on a column of the row being read.
-- **The owner role** (`ros_owner`) bypasses RLS by design, for migrations and
+- **The owner role** (`evoadmin`) bypasses RLS by design, for migrations and
   backups. It must never appear in `DATABASE_URL`; `npm run db:verify` checks.
 
 ## Adding a module

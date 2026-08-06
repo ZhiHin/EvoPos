@@ -11,7 +11,7 @@ import {
  * provisioned once by scripts/bootstrap.sql (which needs superuser) rather
  * than by migrations (which must not).
  */
-export const appRole = pgRole('ros_app').existing()
+export const appRole = pgRole('evoapp').existing()
 
 /**
  * Tenant and actor identity, read from the Postgres session.

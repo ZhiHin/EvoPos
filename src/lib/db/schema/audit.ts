@@ -18,10 +18,10 @@ import { appRole, currentTenantId } from './_shared'
  * actions.
  *
  * Note the deliberate absence of UPDATE and DELETE policies. Postgres denies
- * anything a policy does not explicitly permit, so `ros_app` can insert and
+ * anything a policy does not explicitly permit, so `evoapp` can insert and
  * read audit rows but cannot alter or remove them -- an attacker who reaches
  * application-level code still cannot erase their own trail. Retention
- * trimming is an operational job run as `ros_owner`, outside the app.
+ * trimming is an operational job run as `evoadmin`, outside the app.
  */
 export const auditLog = pgTable(
   'audit_log',

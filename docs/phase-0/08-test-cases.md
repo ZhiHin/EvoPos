@@ -70,7 +70,7 @@ policy**, which would otherwise lock out anyone whose password predates it.
 
 ## Integration coverage (pending execution)
 
-Every case below runs as `ros_app` against two real tenants.
+Every case below runs as `evoapp` against two real tenants.
 
 | # | Case | Asserts |
 | --- | --- | --- |
@@ -111,10 +111,10 @@ that produces a 500 rather than a leak, but is easy to miss in review.
 2. Register a restaurant → lands on dashboard, permissions listed, audit shows
    `restaurant.created`
 3. Register a second restaurant with a different email
-4. In DBeaver as `ros_app`: `SELECT * FROM branches;` → **0 rows** without
+4. In DBeaver as `evoapp`: `SELECT * FROM branches;` → **0 rows** without
    tenant context. Then `SELECT set_config('app.tenant_id','<id>',false);` and
    repeat → only that tenant's rows
 5. Sign out → confirm the `sessions` row is gone, not just the cookie
 6. Request a password reset → link appears in the server console; use it;
    confirm every prior session is revoked
-7. Point `DATABASE_URL` at `ros_owner` and start → boot assertion fires
+7. Point `DATABASE_URL` at `evoadmin` and start → boot assertion fires

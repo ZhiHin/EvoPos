@@ -44,7 +44,7 @@ function loadEnv() {
       .map((i) => `  - ${i.path.join('.') || '(root)'}: ${i.message}`)
       .join('\n')
     throw new Error(
-      `Invalid environment configuration:\n${issues}\n\nCheck your .env against .env.example.`,
+      `Invalid environment configuration:\n${issues}\n\nRequired variables are documented in README.md, Setup step 3.`,
     )
   }
 

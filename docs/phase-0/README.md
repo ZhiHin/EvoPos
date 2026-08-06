@@ -22,7 +22,7 @@ exists is a menu that has to be re-secured afterwards.
 
 - Next.js 16 + React 19 + Tailwind v4 + shadcn/ui, TypeScript strict
 - PostgreSQL via Drizzle, 12 tables, RLS on 7 of them, 11 policies
-- Two-role database model (`ros_owner` / `ros_app`) with a boot-time assertion
+- Two-role database model (`evoadmin` / `evoapp`) with a boot-time assertion
   that the app cannot bypass RLS
 - Email + password auth (Argon2id), Google OIDC, server-side sessions
 - Password reset and change, both revoking all sessions
@@ -48,7 +48,7 @@ PostgreSQL 17.10, local install:
 ```
 npm run db:migrate       ✅ 12 tables, RLS on 7, 11 policies
 npm run db:seed          ✅ 17 permissions
-npm run db:verify        ✅ ros_app is subject to RLS
+npm run db:verify        ✅ evoapp is subject to RLS
 RUN_DB_TESTS=1 npm test  ✅ 53/53
 ```
 
@@ -72,10 +72,10 @@ validates the raw input, so a copy-pasted or autofilled `" owner@cafe.com "`
 was rejected as malformed. Caught by a unit test. Fixed by piping a trimmed,
 lowercased string into the email check.
 
-**`bootstrap.sql` never granted `ros_owner` CREATE on the database.** Drizzle's
+**`bootstrap.sql` never granted `evoadmin` CREATE on the database.** Drizzle's
 migrator keeps its journal in a separate `drizzle` schema and creates it on
 first run, so `npm run db:migrate` failed at its very first statement with
-"permission denied for database". `createdb -U postgres ros` leaves `postgres`
+"permission denied for database". `createdb -U postgres evopos` leaves `postgres`
 as the database owner, and owning the `public` schema does not confer the right
 to create sibling schemas. This one could only surface by actually running the
 migration — no amount of review would have caught it, which is precisely the

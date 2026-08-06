@@ -18,10 +18,10 @@ import { repinOwnerRoles } from '@/modules/rbac/rbac.service'
  *
  * Idempotent: only absent rows are inserted, so running it twice is a no-op.
  *
- * IMPORTANT — it opens its own connection as `ros_owner` rather than reusing
+ * IMPORTANT — it opens its own connection as `evoadmin` rather than reusing
  * `db` from `@/lib/db`. This is the one operation that must legitimately span
  * every tenant at once, and the application role is deliberately incapable of
- * that: through `ros_app` the query is filtered to nothing by row-level
+ * that: through `evoapp` the query is filtered to nothing by row-level
  * security, `repinOwnerRoles` finds zero roles, and the script reports
  * success while having done nothing at all.
  */

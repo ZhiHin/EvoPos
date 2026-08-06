@@ -12,7 +12,7 @@ import * as schema from './schema'
 /**
  * Runtime database access.
  *
- * Connects as `ros_app`, which is not the table owner and has no BYPASSRLS.
+ * Connects as `evoapp`, which is not the table owner and has no BYPASSRLS.
  * Every statement issued through this client is subject to row-level
  * security. Migrations use a different role and a different entry point
  * (src/lib/db/migrate.ts).
@@ -254,7 +254,7 @@ export async function assertRuntimeRoleIsSafe(): Promise<void> {
   if (faults.length > 0) {
     throw new Error(
       `Refusing to start: DATABASE_URL connects as "${row.role_name}", which bypasses row-level security because ${faults.join(', ')}.\n` +
-        'Tenant isolation would be silently disabled. Point DATABASE_URL at the ros_app role and keep the owner role for DATABASE_URL_MIGRATOR only.',
+        'Tenant isolation would be silently disabled. Point DATABASE_URL at the evoapp role and keep the owner role for DATABASE_URL_MIGRATOR only.',
     )
   }
 }

@@ -179,9 +179,9 @@ their own account.
 
 `audit_log` has SELECT and INSERT policies and no UPDATE or DELETE. Postgres
 denies whatever a policy does not permit, so the omission *is* the control:
-`ros_app` can append and read but cannot alter or erase. An attacker who
+`evoapp` can append and read but cannot alter or erase. An attacker who
 reaches application-level code cannot rewrite their own trail. Retention
-trimming runs as `ros_owner`, outside the application.
+trimming runs as `evoadmin`, outside the application.
 
 ## Indexes
 
@@ -205,7 +205,7 @@ indexes serve both the application's filters and the policy's.
 
 `drizzle/0000_init.sql` — 12 tables, 8 enums, RLS on 7 tables, 11 policies.
 
-Migrations run as `ros_owner` (`DATABASE_URL_MIGRATOR`). Roles are provisioned
+Migrations run as `evoadmin` (`DATABASE_URL_MIGRATOR`). Roles are provisioned
 separately by `scripts/bootstrap.sql`, which needs superuser — keeping role
 creation out of the migration stream means no migration ever requires elevated
 privileges.
