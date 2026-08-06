@@ -11,6 +11,8 @@ import { withTenant } from '@/lib/db'
 import { diningSessions, diningTables } from '@/lib/db/schema'
 import { formatMoney } from '@/lib/money'
 import { previewSplit, readLockedSplit } from '@/modules/bill/bill.service'
+import { readSettlement } from '@/modules/payment/payment.service'
+import { TakePaymentDialog } from '@/modules/payment/ui/take-payment-dialog'
 import { SplitPanel } from '@/modules/bill/ui/split-panel'
 import { computeSessionTotals } from '@/modules/pos/pos.service'
 import {
@@ -48,20 +50,21 @@ export default async function SessionPage({
 
     if (!session) return null
 
-    const [bill, totals, split] = await Promise.all([
+    const [bill, totals, split, settlement] = await Promise.all([
       readSessionBill(tx, sessionId, null),
       computeSessionTotals(tx, restaurantId, sessionId),
       readLockedSplit(tx, restaurantId, sessionId),
+      readSettlement(tx, restaurantId, sessionId),
     ])
 
-    return { session, bill, totals, split }
+    return { session, bill, totals, split, settlement }
   })
 
   // Absent, or another tenant's — indistinguishable, as it should be.
   if (!data) notFound()
 
   const settings = await getSettings(restaurantId, userId)
-  const { session, bill, totals, split } = data
+  const { session, bill, totals, split, settlement } = data
 
   const canVoid = ctx.tenant.permissions.has('order.void')
   const canClose = ctx.tenant.permissions.has('session.close')
@@ -244,10 +247,45 @@ export default async function SessionPage({
               </div>
             </dl>
 
-            {/* Payment is Phase 7. Saying so is better than a dead button. */}
-            <Button className="mt-4 w-full" disabled>
-              Take payment (Phase 7)
-            </Button>
+            {settlement.paidMinor > 0 && (
+              <dl className="mt-3 space-y-1 border-t pt-3 text-sm">
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Paid</dt>
+                  <dd className="font-mono tabular-nums">
+                    {formatMoney(settlement.paidMinor, settings.currency)}
+                  </dd>
+                </div>
+                <div className="flex justify-between font-medium">
+                  <dt>Outstanding</dt>
+                  <dd className="font-mono tabular-nums">
+                    {formatMoney(
+                      settlement.outstandingMinor,
+                      settings.currency,
+                    )}
+                  </dd>
+                </div>
+              </dl>
+            )}
+
+            {ctx.tenant.permissions.has('payment.take') &&
+              !settlement.isSettled && (
+                <TakePaymentDialog
+                  sessionId={session.id}
+                  outstandingMinor={settlement.outstandingMinor}
+                  currency={settings.currency}
+                  trigger={
+                    <Button className="mt-4 h-12 w-full text-base">
+                      Take payment
+                    </Button>
+                  }
+                />
+              )}
+
+            {settlement.isSettled && totals.totalMinor > 0 && (
+              <p className="mt-4 rounded-md bg-accent px-3 py-2 text-center text-sm">
+                Paid in full
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>

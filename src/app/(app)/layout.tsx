@@ -47,6 +47,9 @@ export default async function AppLayout({ children }: LayoutProps<'/'>) {
     ...(ctx.tenant.permissions.has('menu.item.view')
       ? [{ href: '/menu', label: 'Menu', icon: 'menu' as const }]
       : []),
+    ...(ctx.tenant.permissions.has('reconciliation.view')
+      ? [{ href: '/takings', label: 'Takings', icon: 'takings' as const }]
+      : []),
     ...(ctx.tenant.permissions.has('menu.modifier.view')
       ? [
           {

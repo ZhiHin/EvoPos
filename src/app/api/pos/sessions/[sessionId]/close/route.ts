@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { assertSameOrigin, getRequestMetadata, withRoute } from '@/lib/api'
 import { requirePermission } from '@/lib/auth/context'
-import { closeSession } from '@/modules/session/session.service'
+import { settleAndCloseSession } from '@/modules/payment/payment.service'
 
 interface RouteContext {
   params: Promise<{ sessionId: string }>
@@ -11,10 +11,10 @@ interface RouteContext {
 /**
  * Closes a session and frees its table.
  *
- * Phase 5 closes without taking payment — payment lands in Phase 7, and
- * pretending to record one here would put an unbacked "paid" flag in the
- * ledger. What this does honestly is end the session and expire its diner
- * tokens.
+ * Refuses while anything is still outstanding. An unpaid bill quietly
+ * disappearing is how money goes missing without anyone noticing — the table
+ * is free, the screen is clear, and nobody can say what happened to the
+ * forty ringgit.
  */
 export const POST = withRoute(
   async (request: Request, { params }: RouteContext) => {
@@ -23,7 +23,7 @@ export const POST = withRoute(
     const ctx = await requirePermission('session.close')
     const { sessionId } = await params
 
-    await closeSession(
+    await settleAndCloseSession(
       {
         restaurantId: ctx.tenant.restaurantId,
         userId: ctx.user.id,

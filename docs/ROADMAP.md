@@ -18,7 +18,7 @@ security considerations, test cases, documentation.
 | **4** | **Dining Session & QR ordering** ✅ | The core business object; join table, diner context, order lines with frozen prices, call waiter | 1, 3 |
 | **5** | **Order & POS** ✅ | Dine-in / takeaway / delivery, merge, transfer, discounts, bill engine, floor view | 4 |
 | **6** | **Smart Bill Engine** ✅ | Exact-to-the-cent splitting: by owner / evenly / by percentage / by item, shared items, locked shares for leave-early | 5 |
-| 7 | Payments | Cash, card, e-wallets, DuitNow, gateway webhooks, mixed payment, reconciliation | 6 |
+| **7** | **Payments** ✅ | Cash, terminal card/e-wallet, transfer, mixed payment, idempotency, voids, refunds, reconciliation. Online gateway deferred | 6 |
 | 8 | Kitchen & printing | KDS, stations, queues, timers, printer routing rules, notifications | 5 |
 | 9 | Promotions & Loyalty | Rule engine, stacking and priority, membership tiers, points, rewards | 5 |
 | 10 | Inventory & Suppliers | Ingredients, recipes, auto-deduction, purchase orders, goods receiving | 2, 5 |

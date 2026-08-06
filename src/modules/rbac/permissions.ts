@@ -106,6 +106,22 @@ export const PERMISSIONS: readonly PermissionDefinition[] = [
     /** Voiding removes an item from a bill, so it is its own capability. */
     void: 'Void an order line',
   }),
+  ...define('payment', {
+    view: 'View payments taken against a bill',
+    take: 'Take a payment',
+    /**
+     * Voiding cancels a payment recorded in error — a mistyped amount, the
+     * wrong method. Distinct from refunding, which returns money that was
+     * genuinely taken.
+     */
+    void: 'Void a payment recorded in error',
+  }),
+  ...define('refund', {
+    issue: 'Refund money to a customer',
+  }),
+  ...define('reconciliation', {
+    view: 'View takings and reconcile the drawer',
+  }),
   ...define('bill', {
     view: 'View a bill and how it has been split',
     split: 'Split a bill between the people at a table',
@@ -237,6 +253,11 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'order.view',
       'order.create',
       'order.void',
+      'payment.view',
+      'payment.take',
+      'payment.void',
+      'refund.issue',
+      'reconciliation.view',
       'bill.view',
       'bill.split',
       'bill.lock',
@@ -279,7 +300,10 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'session.close',
       'order.view',
       'order.create',
-      // Splitting a bill is the core of what a cashier does at settlement.
+      // Taking payment and splitting a bill is the whole of a cashier's job.
+      'payment.view',
+      'payment.take',
+      'reconciliation.view',
       'bill.view',
       'bill.split',
       'bill.lock',

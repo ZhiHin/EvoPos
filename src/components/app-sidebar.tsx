@@ -10,6 +10,7 @@ import {
   SlidersHorizontal,
   Table2,
   UtensilsCrossed,
+  Wallet,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -33,12 +34,14 @@ export interface NavItem {
     | 'tables'
     | 'menu'
     | 'modifiers'
+    | 'takings'
     | 'settings'
 }
 
 const ICONS = {
   dashboard: LayoutDashboard,
   floor: UtensilsCrossed,
+  takings: Wallet,
   branches: Building2,
   tables: Table2,
   menu: BookOpen,
