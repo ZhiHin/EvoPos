@@ -131,6 +131,84 @@ export async function withQrToken<T>(
   })
 }
 
+export interface DinerContext {
+  memberId: string
+  sessionId: string
+  restaurantId: string
+  displayName: string
+}
+
+/**
+ * Diner context — an anonymous person at a table.
+ *
+ * Note what is deliberately NOT set: `app.tenant_id`. Every tenant policy in
+ * the system compares against that variable, so setting it for someone who
+ * scanned a QR code would hand an anonymous stranger the entire restaurant.
+ * A diner's reach comes solely from the member and diner-read policies, which
+ * scope them to one session's bill and one restaurant's menu.
+ *
+ * Bootstrapping happens in two steps inside one transaction, because the
+ * member row must be read before member context can exist:
+ *
+ *   1. Set `app.member_token`. The `..._token_lookup` policy now reveals
+ *      exactly the one member row bearing that token, and nothing else.
+ *   2. Read it, then set the identity variables the remaining policies use.
+ *
+ * Every other context variable is explicitly blanked first. On a pooled
+ * connection they would otherwise hold whatever the previous transaction set,
+ * which is precisely how an anonymous request would inherit staff access.
+ *
+ * Returns null when the token is unknown, expired, or belongs to someone who
+ * has left — the caller treats all three identically.
+ */
+export async function withDiner<T>(
+  memberTokenHash: string,
+  fn: (tx: Transaction, diner: DinerContext) => Promise<T>,
+): Promise<T | null> {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`
+      select
+        set_config('app.tenant_id', '', true),
+        set_config('app.user_id', '', true),
+        set_config('app.qr_token', '', true),
+        set_config('app.member_id', '', true),
+        set_config('app.session_id', '', true),
+        set_config('app.diner_tenant_id', '', true),
+        set_config('app.member_token', ${memberTokenHash}, true)
+    `)
+
+    const [member] = await tx.execute<{
+      id: string
+      session_id: string
+      restaurant_id: string
+      display_name: string
+    }>(sql`
+      select id, session_id, restaurant_id, display_name
+      from dining_session_members
+      where token_hash = ${memberTokenHash}
+        and expires_at > now()
+        and left_at is null
+      limit 1
+    `)
+
+    if (!member) return null
+
+    await tx.execute(sql`
+      select
+        set_config('app.member_id', ${member.id}, true),
+        set_config('app.session_id', ${member.session_id}, true),
+        set_config('app.diner_tenant_id', ${member.restaurant_id}, true)
+    `)
+
+    return fn(tx, {
+      memberId: member.id,
+      sessionId: member.session_id,
+      restaurantId: member.restaurant_id,
+      displayName: member.display_name,
+    })
+  })
+}
+
 /**
  * Fails loudly if the application is connected with a role that can see
  * through RLS.

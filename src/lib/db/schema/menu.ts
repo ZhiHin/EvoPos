@@ -17,7 +17,7 @@ import {
 } from 'drizzle-orm/pg-core'
 
 import { branches, restaurants } from './tenancy'
-import { tenantPolicy, timestamps } from './_shared'
+import { dinerMenuReadPolicy, tenantPolicy, timestamps } from './_shared'
 
 /**
  * The Universal Menu Engine.
@@ -83,6 +83,7 @@ export const menuCategories = pgTable(
     index('menu_categories_restaurant_id_idx').on(t.restaurantId),
     index('menu_categories_parent_id_idx').on(t.parentId),
     tenantPolicy('menu_categories_tenant_isolation', t.restaurantId),
+    dinerMenuReadPolicy('menu_categories_diner_read', t.restaurantId),
   ],
 )
 
@@ -124,6 +125,8 @@ export const menuTags = pgTable(
     ),
     index('menu_tags_restaurant_id_idx').on(t.restaurantId),
     tenantPolicy('menu_tags_tenant_isolation', t.restaurantId),
+    // Allergen badges must be visible to the person deciding what to eat.
+    dinerMenuReadPolicy('menu_tags_diner_read', t.restaurantId),
   ],
 )
 
@@ -254,6 +257,7 @@ export const menuItems = pgTable(
     /** GIN so custom attributes stay filterable despite living in JSONB. */
     index('menu_items_attributes_idx').using('gin', t.attributes),
     tenantPolicy('menu_items_tenant_isolation', t.restaurantId),
+    dinerMenuReadPolicy('menu_items_diner_read', t.restaurantId),
   ],
 )
 
@@ -278,6 +282,7 @@ export const menuItemTags = pgTable(
     index('menu_item_tags_tag_id_idx').on(t.tagId),
     index('menu_item_tags_restaurant_id_idx').on(t.restaurantId),
     tenantPolicy('menu_item_tags_tenant_isolation', t.restaurantId),
+    dinerMenuReadPolicy('menu_item_tags_diner_read', t.restaurantId),
   ],
 )
 

@@ -21,7 +21,9 @@ export interface ScannedTable {
   tableId: string
   tableCode: string
   tableName: string | null
+  branchId: string
   branchName: string
+  restaurantId: string
   restaurantName: string
 }
 
@@ -97,7 +99,9 @@ export async function resolveTableByToken(
         tableId: diningTables.id,
         tableCode: diningTables.code,
         tableName: diningTables.name,
+        branchId: diningTables.branchId,
         branchName: branches.name,
+        restaurantId: diningTables.restaurantId,
         restaurantName: restaurants.name,
       })
       .from(diningTables)

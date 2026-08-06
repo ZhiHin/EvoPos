@@ -13,7 +13,7 @@ import {
 
 import { menuItems } from './menu'
 import { branches, restaurants } from './tenancy'
-import { tenantPolicy, timestamps } from './_shared'
+import { dinerMenuReadPolicy, tenantPolicy, timestamps } from './_shared'
 
 /**
  * The Universal Modifier Engine and Combo Builder.
@@ -68,6 +68,7 @@ export const modifierGroups = pgTable(
     ),
     index('modifier_groups_restaurant_id_idx').on(t.restaurantId),
     tenantPolicy('modifier_groups_tenant_isolation', t.restaurantId),
+    dinerMenuReadPolicy('modifier_groups_diner_read', t.restaurantId),
   ],
 )
 
@@ -109,6 +110,7 @@ export const modifierOptions = pgTable(
     index('modifier_options_group_id_idx').on(t.groupId),
     index('modifier_options_restaurant_id_idx').on(t.restaurantId),
     tenantPolicy('modifier_options_tenant_isolation', t.restaurantId),
+    dinerMenuReadPolicy('modifier_options_diner_read', t.restaurantId),
   ],
 )
 
@@ -146,6 +148,10 @@ export const menuItemModifierGroups = pgTable(
     index('menu_item_modifier_groups_group_idx').on(t.modifierGroupId),
     index('menu_item_modifier_groups_restaurant_id_idx').on(t.restaurantId),
     tenantPolicy('menu_item_modifier_groups_tenant_isolation', t.restaurantId),
+    dinerMenuReadPolicy(
+      'menu_item_modifier_groups_diner_read',
+      t.restaurantId,
+    ),
   ],
 )
 
@@ -223,6 +229,7 @@ export const combos = pgTable(
     uniqueIndex('combos_restaurant_name_key').on(t.restaurantId, t.name),
     index('combos_restaurant_id_idx').on(t.restaurantId),
     tenantPolicy('combos_tenant_isolation', t.restaurantId),
+    dinerMenuReadPolicy('combos_diner_read', t.restaurantId),
   ],
 )
 
@@ -250,6 +257,7 @@ export const comboGroups = pgTable(
     index('combo_groups_combo_id_idx').on(t.comboId),
     index('combo_groups_restaurant_id_idx').on(t.restaurantId),
     tenantPolicy('combo_groups_tenant_isolation', t.restaurantId),
+    dinerMenuReadPolicy('combo_groups_diner_read', t.restaurantId),
   ],
 )
 
@@ -293,6 +301,7 @@ export const comboGroupItems = pgTable(
     index('combo_group_items_menu_item_idx').on(t.menuItemId),
     index('combo_group_items_restaurant_id_idx').on(t.restaurantId),
     tenantPolicy('combo_group_items_tenant_isolation', t.restaurantId),
+    dinerMenuReadPolicy('combo_group_items_diner_read', t.restaurantId),
   ],
 )
 

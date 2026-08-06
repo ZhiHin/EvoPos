@@ -561,7 +561,25 @@ export async function loadItemModifierRules(
   userId: string,
   menuItemId: string,
 ): Promise<ModifierGroupRules[]> {
-  return withTenant({ restaurantId, userId }, async (tx) => {
+  return withTenant({ restaurantId, userId }, (tx) =>
+    loadItemModifierRulesIn(tx, restaurantId, menuItemId),
+  )
+}
+
+/**
+ * Same, but inside a caller-supplied transaction.
+ *
+ * Exists because the diner ordering path runs under `withDiner`, which has no
+ * tenant context and therefore cannot call the wrapper above. The queries are
+ * identical; only the surrounding context differs, and the diner-read
+ * policies grant exactly the SELECT access these need.
+ */
+export async function loadItemModifierRulesIn(
+  tx: Transaction,
+  restaurantId: string,
+  menuItemId: string,
+): Promise<ModifierGroupRules[]> {
+  {
     const attached = await tx
       .select({
         groupId: modifierGroups.id,
@@ -618,5 +636,5 @@ export async function loadItemModifierRules(
           })),
       }
     })
-  })
+  }
 }

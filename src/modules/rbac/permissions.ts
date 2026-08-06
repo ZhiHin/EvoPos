@@ -94,6 +94,22 @@ export const PERMISSIONS: readonly PermissionDefinition[] = [
     'combo.update': 'Edit a combo, its slots and its pricing',
     'combo.delete': 'Delete a combo',
   }),
+  ...define('session', {
+    view: 'View dining sessions and who is at each table',
+    open: 'Open a dining session on a table',
+    manage: 'Rename, reassign or remove diners from a session',
+    close: 'Close a dining session',
+  }),
+  ...define('order', {
+    view: 'View order lines on a session',
+    create: 'Add items to a session on a diner’s behalf',
+    /** Voiding removes an item from a bill, so it is its own capability. */
+    void: 'Void an order line',
+  }),
+  ...define('service', {
+    view: 'See waiter calls and bill requests',
+    resolve: 'Mark a waiter call or bill request as handled',
+  }),
   ...define('staff', {
     view: 'View staff members and their roles',
     invite: 'Invite a person to join this restaurant',
@@ -188,6 +204,15 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'menu.combo.create',
       'menu.combo.update',
       'menu.combo.delete',
+      'session.view',
+      'session.open',
+      'session.manage',
+      'session.close',
+      'order.view',
+      'order.create',
+      'order.void',
+      'service.view',
+      'service.resolve',
       'staff.view',
       'staff.invite',
       'staff.update',
@@ -211,6 +236,16 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'menu.item.view',
       'menu.modifier.view',
       'menu.combo.view',
+      // Settling a bill is the cashier's job, so they need the session and
+      // its lines — but not the ability to void one, which changes what a
+      // customer owes.
+      'session.view',
+      'session.open',
+      'session.close',
+      'order.view',
+      'order.create',
+      'service.view',
+      'service.resolve',
     ],
   },
   {
@@ -232,6 +267,14 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'menu.item.view',
       'menu.modifier.view',
       'menu.combo.view',
+      // The floor is where waiter calls land and where orders are taken.
+      'session.view',
+      'session.open',
+      'session.manage',
+      'order.view',
+      'order.create',
+      'service.view',
+      'service.resolve',
     ],
   },
   {

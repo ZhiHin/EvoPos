@@ -43,6 +43,13 @@
       "when": 1786016030407,
       "tag": "0005_modifiers",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786017027308,
+      "tag": "0006_dining_sessions",
+      "breakpoints": true
     }
   ]
 }

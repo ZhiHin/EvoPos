@@ -48,6 +48,59 @@ export const currentQrToken = (): SQL =>
   sql`nullif(current_setting('app.qr_token', true), '')`
 
 /**
+ * Diner context — the fourth and last way into this database.
+ *
+ * A diner scanning a QR is not a user and belongs to no tenant. They must
+ * NEVER be given `app.tenant_id`: that variable is what every tenant policy
+ * compares against, so setting it for an anonymous scanner would hand them
+ * the whole restaurant. `withDiner` therefore clears tenant and actor context
+ * and sets these instead, and every diner-facing policy is written against
+ * them alone.
+ *
+ * Four variables, each doing one job:
+ *
+ *   app.member_token    proves who you are; reveals exactly your member row
+ *   app.member_id       your identity, once proven
+ *   app.session_id      scopes you to one table's bill
+ *   app.diner_tenant_id read-only menu access, and nothing else
+ *
+ * The token variable exists for the same reason `app.qr_token` does: the
+ * lookup that authenticates a member has to read the member row before any
+ * member context exists, so a policy keyed on the token bootstraps it without
+ * ever opening the table to enumeration.
+ */
+export const currentMemberToken = (): SQL =>
+  sql`nullif(current_setting('app.member_token', true), '')`
+
+export const currentMemberId = (): SQL =>
+  sql`nullif(current_setting('app.member_id', true), '')::uuid`
+
+export const currentSessionId = (): SQL =>
+  sql`nullif(current_setting('app.session_id', true), '')::uuid`
+
+export const currentDinerTenantId = (): SQL =>
+  sql`nullif(current_setting('app.diner_tenant_id', true), '')::uuid`
+
+/**
+ * Read-only menu visibility for a diner.
+ *
+ * SELECT only, and scoped to the one restaurant whose table they are sitting
+ * at. This is what lets the ordering screen show a menu without the diner
+ * request ever acquiring tenant context.
+ */
+export function dinerMenuReadPolicy(
+  name: string,
+  tenantColumn: AnyPgColumn,
+) {
+  return pgPolicy(name, {
+    as: 'permissive',
+    for: 'select',
+    to: appRole,
+    using: sql`${tenantColumn} = ${currentDinerTenantId()}`,
+  })
+}
+
+/**
  * Standard tenant isolation: a row is visible and writable only while the
  * session is operating inside the owning restaurant.
  *
