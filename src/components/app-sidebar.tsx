@@ -7,6 +7,7 @@ import {
   Building2,
   LayoutDashboard,
   Settings,
+  SlidersHorizontal,
   Table2,
 } from 'lucide-react'
 
@@ -24,7 +25,13 @@ import { cn } from '@/lib/utils'
 export interface NavItem {
   href: string
   label: string
-  icon: 'dashboard' | 'branches' | 'tables' | 'menu' | 'settings'
+  icon:
+    | 'dashboard'
+    | 'branches'
+    | 'tables'
+    | 'menu'
+    | 'modifiers'
+    | 'settings'
 }
 
 const ICONS = {
@@ -32,6 +39,7 @@ const ICONS = {
   branches: Building2,
   tables: Table2,
   menu: BookOpen,
+  modifiers: SlidersHorizontal,
   settings: Settings,
 } as const
 

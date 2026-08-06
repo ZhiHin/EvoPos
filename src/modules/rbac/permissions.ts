@@ -85,6 +85,14 @@ export const PERMISSIONS: readonly PermissionDefinition[] = [
     'tag.manage': 'Manage tags, allergens and dietary labels',
     'attribute.manage':
       'Define the custom fields available on menu items',
+    'modifier.view': 'View modifier groups and their options',
+    'modifier.create': 'Create a modifier group',
+    'modifier.update': 'Edit modifier groups, options and their prices',
+    'modifier.delete': 'Delete a modifier group',
+    'combo.view': 'View combos and set meals',
+    'combo.create': 'Create a combo',
+    'combo.update': 'Edit a combo, its slots and its pricing',
+    'combo.delete': 'Delete a combo',
   }),
   ...define('staff', {
     view: 'View staff members and their roles',
@@ -172,6 +180,14 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'menu.item.delete',
       'menu.tag.manage',
       'menu.attribute.manage',
+      'menu.modifier.view',
+      'menu.modifier.create',
+      'menu.modifier.update',
+      'menu.modifier.delete',
+      'menu.combo.view',
+      'menu.combo.create',
+      'menu.combo.update',
+      'menu.combo.delete',
       'staff.view',
       'staff.invite',
       'staff.update',
@@ -188,10 +204,13 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'branch.view',
       'floor.view',
       'table.view',
-      // A cashier must read the menu to ring up an order, and must never be
-      // able to change what anything costs.
+      // A cashier must read the menu — including modifiers and combos — to
+      // ring up an order, and must never be able to change what anything
+      // costs.
       'menu.category.view',
       'menu.item.view',
+      'menu.modifier.view',
+      'menu.combo.view',
     ],
   },
   {
@@ -211,14 +230,26 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'table.update',
       'menu.category.view',
       'menu.item.view',
+      'menu.modifier.view',
+      'menu.combo.view',
     ],
   },
   {
     key: 'kitchen',
     name: 'Kitchen Staff',
     description: 'Works the kitchen display and updates ticket status.',
-    // Kitchen staff read the menu to know what a ticket refers to.
-    permissions: ['branch.view', 'menu.category.view', 'menu.item.view'],
+    /**
+     * Kitchen staff read the menu to know what a ticket refers to — and
+     * modifiers especially, since "no ice, extra chilli" is the part of the
+     * ticket they actually act on.
+     */
+    permissions: [
+      'branch.view',
+      'menu.category.view',
+      'menu.item.view',
+      'menu.modifier.view',
+      'menu.combo.view',
+    ],
   },
   {
     key: 'inventory',
