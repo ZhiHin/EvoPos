@@ -22,7 +22,7 @@ security considerations, test cases, documentation.
 | **8** | **Kitchen & printing** ✅ | KDS with stations, queues and timers, forward-only transitions, station routing, ticket/receipt rendering. Physical printing needs an on-site agent | 5 |
 | **9** | **Promotions & Loyalty** ✅ | Pure rule engine, stacking and priority, usage caps, vouchers, membership tiers, points ledger. Accrual wires into settlement once Phase 11 attaches a member to a bill | 5 |
 | **10** | **Inventory & Suppliers** ✅ | Ingredients, recipes on items and modifiers, auto-deduction and return on void, movement ledger with a proven reconciler, suppliers, purchase orders with partial receiving and weighted-average costing | 2, 5 |
-| 11 | CRM, Reservations, Staff | Customer profiles, segmentation, bookings, waitlist, shifts, attendance | 4 |
+| **11** | **CRM, Reservations, Staff** ✅ | Bookings with transactional availability, waiting list, customer profiles, roster with conflict-checked publishing, time clock. Closes Phase 9's loyalty accrual | 4 |
 | 12 | Dashboard & Reporting | Real-time operations, sales/profit/tax reports, PDF/Excel/CSV export | 5, 7 |
 | 13 | AI Restaurant Manager | Recommendations with explanations across sales, inventory, ops, customers, finance | 12 |
 | 14 | SaaS & integrations | Plan metering and gating, franchise dashboard, third-party integrations, deploy hardening | all |

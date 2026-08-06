@@ -133,6 +133,37 @@ export const PERMISSIONS: readonly PermissionDefinition[] = [
     advance: 'Move a ticket through preparation',
     'station.manage': 'Create and configure kitchen stations',
   }),
+  ...define('reservation', {
+    view: 'View bookings',
+    create: 'Take a booking',
+    update: 'Change a booking’s time, size or table',
+    /** Seating turns a booking into a live bill, so it stands alone. */
+    seat: 'Seat a booking and open its table',
+    cancel: 'Cancel a booking or mark it a no-show',
+  }),
+  ...define('waitlist', {
+    view: 'View the waiting list',
+    manage: 'Add, quote, notify and seat people waiting',
+  }),
+  ...define('shift', {
+    view: 'View the roster',
+    manage: 'Create and edit shifts',
+    /**
+     * Publishing is what staff actually see. Kept apart from editing so a
+     * half-built roster is not a message to everyone about next week.
+     */
+    publish: 'Publish the roster to staff',
+  }),
+  ...define('attendance', {
+    view: 'View timesheets and who is on shift',
+    /** Clocking yourself in and out. Held by every working role. */
+    clock: 'Clock in and out',
+    /**
+     * Editing a timesheet changes what someone is paid. It is the one
+     * capability here that moves money, so it is nobody's by default.
+     */
+    edit: 'Correct a timesheet entry',
+  }),
   ...define('ingredient', {
     view: 'View ingredients and what they cost',
     manage: 'Create and edit ingredients',
@@ -371,6 +402,19 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'purchase.approve',
       'purchase.receive',
       'purchase.cancel',
+      'reservation.view',
+      'reservation.create',
+      'reservation.update',
+      'reservation.seat',
+      'reservation.cancel',
+      'waitlist.view',
+      'waitlist.manage',
+      'shift.view',
+      'shift.manage',
+      'shift.publish',
+      'attendance.view',
+      'attendance.clock',
+      'attendance.edit',
       'audit.view',
       'settings.view',
     ],
@@ -409,6 +453,13 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'voucher.view',
       'voucher.redeem',
       'customer.view',
+      /**
+       * Added in Phase 11, when attaching a member to a bill became a till
+       * action. "Are you a member?" is answered at the counter, and a cashier
+       * who can look someone up but not sign them up would have to turn away
+       * the person standing in front of them.
+       */
+      'customer.manage',
       'loyalty.view',
       'bill.view',
       'bill.split',
@@ -419,6 +470,14 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       // manager decides something costs less or undoes an agreed split.
       'service.view',
       'service.resolve',
+      // The phone at the till is where bookings are taken.
+      'reservation.view',
+      'reservation.create',
+      'reservation.seat',
+      'waitlist.view',
+      'waitlist.manage',
+      'shift.view',
+      'attendance.clock',
     ],
   },
   {
@@ -454,6 +513,13 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'kitchen.advance',
       'service.view',
       'service.resolve',
+      // Walking a booking to its table, and the waiting list at the door.
+      'reservation.view',
+      'reservation.seat',
+      'waitlist.view',
+      'waitlist.manage',
+      'shift.view',
+      'attendance.clock',
     ],
   },
   {
@@ -482,6 +548,10 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
        */
       'stock.view',
       'stock.waste',
+      // Everyone who works a shift can see the roster and clock themselves
+      // in. Neither is an administrative act.
+      'shift.view',
+      'attendance.clock',
     ],
   },
   {
@@ -508,6 +578,8 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'purchase.create',
       'purchase.receive',
       'purchase.cancel',
+      'shift.view',
+      'attendance.clock',
     ],
   },
   {

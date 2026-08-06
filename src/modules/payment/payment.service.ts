@@ -11,6 +11,7 @@ import { ConflictError, NotFoundError } from '@/lib/errors'
 import { recordAuditIn } from '@/modules/audit/audit.service'
 import type { BranchActorContext } from '@/modules/branch/branch.service'
 import { computeSessionTotals } from '@/modules/pos/pos.service'
+import { earnPointsForSession } from '@/modules/promotion/loyalty.service'
 import { closeSession } from '@/modules/session/session.service'
 import {
   assertPaymentIsAcceptable,
@@ -543,6 +544,38 @@ export async function settleAndCloseSession(
   if (!settlement.isSettled) {
     throw new ConflictError(
       `This bill still has ${(settlement.outstandingMinor / 100).toFixed(2)} outstanding. Take payment before closing it.`,
+    )
+  }
+
+  /**
+   * Loyalty accrues here, at settlement, if a member is attached to the bill.
+   *
+   * Phase 9 wrote and tested `earnPointsForSession` but could not call it: a
+   * bill had no customer to award points to until Phase 11 added the link.
+   *
+   * Points are awarded on what was actually paid, not on the bill total. A
+   * comped or discounted meal earns on the discounted figure, because that is
+   * what the customer spent — awarding on the pre-discount total would let a
+   * generous manager mint points out of nothing.
+   *
+   * Read before closing, because closing is what makes the session final and
+   * a failure after it would leave a settled bill with no points and no way
+   * to notice.
+   */
+  const [session] = await withTenant(ctx, (tx) =>
+    tx
+      .select({ customerId: diningSessions.customerId })
+      .from(diningSessions)
+      .where(eq(diningSessions.id, sessionId))
+      .limit(1),
+  )
+
+  if (session?.customerId) {
+    await earnPointsForSession(
+      ctx,
+      session.customerId,
+      sessionId,
+      settlement.paidMinor,
     )
   }
 

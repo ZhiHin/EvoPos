@@ -14,6 +14,8 @@ import { previewSplit, readLockedSplit } from '@/modules/bill/bill.service'
 import { readSettlement } from '@/modules/payment/payment.service'
 import { TakePaymentDialog } from '@/modules/payment/ui/take-payment-dialog'
 import { SplitPanel } from '@/modules/bill/ui/split-panel'
+import { readCustomerProfile } from '@/modules/crm/customer.service'
+import { CustomerPanel } from '@/modules/crm/ui/customer-panel'
 import { computeSessionTotals } from '@/modules/pos/pos.service'
 import { PromotionPanel } from '@/modules/promotion/ui/promotion-panel'
 import {
@@ -42,6 +44,7 @@ export default async function SessionPage({
         status: diningSessions.status,
         tableCode: diningTables.code,
         customerName: diningSessions.customerName,
+        customerId: diningSessions.customerId,
         openedAt: diningSessions.openedAt,
       })
       .from(diningSessions)
@@ -66,6 +69,25 @@ export default async function SessionPage({
 
   const settings = await getSettings(restaurantId, userId)
   const { session, bill, totals, split, settlement } = data
+
+  /**
+   * The member attached to this bill, if any. Read separately rather than
+   * joined, because it is null on the overwhelming majority of bills and a
+   * join would pay for it on every one of them.
+   */
+  const attachedCustomer =
+    session.customerId && ctx.tenant.permissions.has('customer.view')
+      ? await readCustomerProfile(
+          restaurantId,
+          userId,
+          session.customerId,
+        ).then((profile) => ({
+          id: profile.id,
+          name: profile.name,
+          tierName: profile.tierName,
+          pointsBalance: profile.pointsBalance,
+        }))
+      : null
 
   const canVoid = ctx.tenant.permissions.has('order.void')
   const canClose = ctx.tenant.permissions.has('session.close')
@@ -267,6 +289,15 @@ export default async function SessionPage({
                 </div>
               </dl>
             )}
+
+            {ctx.tenant.permissions.has('customer.view') &&
+              !settlement.isSettled && (
+                <CustomerPanel
+                  sessionId={session.id}
+                  attached={attachedCustomer}
+                  canManage={ctx.tenant.permissions.has('customer.manage')}
+                />
+              )}
 
             {ctx.tenant.permissions.has('promotion.view') &&
               !settlement.isSettled && (

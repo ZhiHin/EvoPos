@@ -9,9 +9,11 @@ import {
   timestamp,
   uniqueIndex,
   uuid,
+  type AnyPgColumn,
 } from 'drizzle-orm/pg-core'
 
 import { kitchenStations } from './kitchen'
+import { customers } from './promotion'
 import { menuItems } from './menu'
 import { combos, modifierOptions } from './modifiers'
 import { diningTables } from './structure'
@@ -84,12 +86,32 @@ export const diningSessions = pgTable(
 
     /**
      * Minimal customer capture for takeaway and delivery. Deliberately plain
-     * columns rather than a link to a CRM record — the CRM arrives in Phase
-     * 11, and a walk-in giving a name for a paper bag should not require one.
+     * columns rather than a link to a CRM record — a walk-in giving a name
+     * for a paper bag should not require one.
+     *
+     * These stay, and are not superseded by `customerId` below. Most people
+     * who give a name are not members and never will be.
      */
     customerName: text('customer_name'),
     customerPhone: text('customer_phone'),
     deliveryAddress: text('delivery_address'),
+
+    /**
+     * The member this bill belongs to, added in Phase 11.
+     *
+     * This is what lets loyalty points accrue at settlement — Phase 9 wrote
+     * and tested the accrual but could not call it, because a bill had no
+     * customer to award them to.
+     *
+     * Nullable, and null is the common case. The reference is declared with
+     * a lazy callback because `customers` lives in a module that already
+     * imports this one; the callback defers resolution past module
+     * evaluation, so the cycle never has to be untangled at import time.
+     */
+    customerId: uuid('customer_id').references(
+      (): AnyPgColumn => customers.id,
+      { onDelete: 'set null' },
+    ),
 
     /** Null when a diner opened it by scanning rather than a staff member. */
     openedByUserId: uuid('opened_by_user_id').references(() => users.id, {

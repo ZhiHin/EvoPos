@@ -163,7 +163,7 @@ application sees — a fast way to sanity-check a policy.
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | All 15 phases and their dependencies |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Module conventions, layering, how to add a module |
 | [`docs/phase-0/`](docs/phase-0/) | Phase 0 artifacts: requirements, ER diagram, API spec, business rules, screens, validation, security, tests |
-| `docs/phase-1/` … [`docs/phase-10/`](docs/phase-10/) | One README per shipped phase: what it delivers, what was verified, and the gaps it left open |
+| `docs/phase-1/` … [`docs/phase-11/`](docs/phase-11/) | One README per shipped phase: what it delivers, what was verified, and the gaps it left open |
 
 ---
 

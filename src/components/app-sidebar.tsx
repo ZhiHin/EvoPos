@@ -5,12 +5,15 @@ import { usePathname } from 'next/navigation'
 import {
   BookOpen,
   Building2,
+  CalendarDays,
+  ClipboardList,
   LayoutDashboard,
   Package,
   Settings,
   SlidersHorizontal,
   Table2,
   TicketPercent,
+  Users,
   UtensilsCrossed,
   Wallet,
   ChefHat,
@@ -40,6 +43,9 @@ export interface NavItem {
     | 'modifiers'
     | 'promotions'
     | 'inventory'
+    | 'bookings'
+    | 'roster'
+    | 'customers'
     | 'takings'
     | 'settings'
 }
@@ -55,6 +61,9 @@ const ICONS = {
   modifiers: SlidersHorizontal,
   promotions: TicketPercent,
   inventory: Package,
+  bookings: CalendarDays,
+  roster: ClipboardList,
+  customers: Users,
   settings: Settings,
 } as const
 

@@ -62,6 +62,21 @@ export default async function AppLayout({ children }: LayoutProps<'/'>) {
           },
         ]
       : []),
+    ...(ctx.tenant.permissions.has('reservation.view')
+      ? [{ href: '/bookings', label: 'Bookings', icon: 'bookings' as const }]
+      : []),
+    ...(ctx.tenant.permissions.has('shift.view')
+      ? [{ href: '/roster', label: 'Roster', icon: 'roster' as const }]
+      : []),
+    ...(ctx.tenant.permissions.has('customer.view')
+      ? [
+          {
+            href: '/customers',
+            label: 'Customers',
+            icon: 'customers' as const,
+          },
+        ]
+      : []),
     ...(ctx.tenant.permissions.has('stock.view')
       ? [
           {
