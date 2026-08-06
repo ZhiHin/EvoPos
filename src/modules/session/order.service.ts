@@ -12,6 +12,7 @@ import {
 import { ConflictError, NotFoundError, ValidationError } from '@/lib/errors'
 import { recordAuditIn } from '@/modules/audit/audit.service'
 import type { BranchActorContext } from '@/modules/branch/branch.service'
+import { resolveStationForItem } from '@/modules/kitchen/kitchen.service'
 import { loadItemModifierRulesIn } from '@/modules/modifier/modifier.service'
 import {
   calculateLineTotal,
@@ -52,7 +53,10 @@ export async function placeDinerOrder(
   input: PlaceOrderInput,
 ): Promise<PlacedLine[]> {
   const [session] = await tx
-    .select({ status: diningSessions.status })
+    .select({
+      status: diningSessions.status,
+      branchId: diningSessions.branchId,
+    })
     .from(diningSessions)
     .where(eq(diningSessions.id, diner.sessionId))
     .limit(1)
@@ -134,6 +138,17 @@ export async function placeDinerOrder(
       modifierSelections: selections,
     })
 
+    /**
+     * Resolved once, here, and frozen onto the line. Re-routing the menu
+     * later must not move a ticket that is already being cooked.
+     */
+    const kitchenStationId = await resolveStationForItem(
+      tx,
+      diner.restaurantId,
+      session.branchId,
+      item.id,
+    )
+
     const [created] = await tx
       .insert(orderLines)
       .values({
@@ -142,6 +157,7 @@ export async function placeDinerOrder(
         // Null attributes the dish to the whole table — what Phase 6 splits.
         memberId: line.isShared ? null : diner.memberId,
         menuItemId: item.id,
+        kitchenStationId,
         nameSnapshot: item.name,
         unitPriceMinor: total.unitPriceMinor,
         quantity: line.quantity,

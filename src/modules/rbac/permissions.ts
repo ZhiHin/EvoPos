@@ -106,6 +106,19 @@ export const PERMISSIONS: readonly PermissionDefinition[] = [
     /** Voiding removes an item from a bill, so it is its own capability. */
     void: 'Void an order line',
   }),
+  ...define('kitchen', {
+    view: 'View the kitchen display',
+    /** Advancing a ticket: started, ready, served. */
+    advance: 'Move a ticket through preparation',
+    'station.manage': 'Create and configure kitchen stations',
+  }),
+  ...define('printer', {
+    manage: 'Configure printers and where each ticket is sent',
+  }),
+  ...define('receipt', {
+    view: 'View and reprint receipts',
+    'template.manage': 'Design receipt templates',
+  }),
   ...define('payment', {
     view: 'View payments taken against a bill',
     take: 'Take a payment',
@@ -253,6 +266,12 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'order.view',
       'order.create',
       'order.void',
+      'kitchen.view',
+      'kitchen.advance',
+      'kitchen.station.manage',
+      'printer.manage',
+      'receipt.view',
+      'receipt.template.manage',
       'payment.view',
       'payment.take',
       'payment.void',
@@ -342,6 +361,10 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'order.create',
       'bill.view',
       'pos.transfer',
+      // A waiter watches the pass for what is ready to run, and marks it
+      // served once it reaches the table.
+      'kitchen.view',
+      'kitchen.advance',
       'service.view',
       'service.resolve',
     ],
@@ -361,6 +384,9 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'menu.item.view',
       'menu.modifier.view',
       'menu.combo.view',
+      // The kitchen display is the whole of this role's job.
+      'kitchen.view',
+      'kitchen.advance',
     ],
   },
   {

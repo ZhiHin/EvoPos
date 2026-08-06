@@ -11,6 +11,7 @@ import {
   Table2,
   UtensilsCrossed,
   Wallet,
+  ChefHat,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -30,6 +31,7 @@ export interface NavItem {
   icon:
     | 'dashboard'
     | 'floor'
+    | 'kds'
     | 'branches'
     | 'tables'
     | 'menu'
@@ -41,6 +43,7 @@ export interface NavItem {
 const ICONS = {
   dashboard: LayoutDashboard,
   floor: UtensilsCrossed,
+  kds: ChefHat,
   takings: Wallet,
   branches: Building2,
   tables: Table2,

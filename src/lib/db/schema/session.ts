@@ -11,6 +11,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 
+import { kitchenStations } from './kitchen'
 import { menuItems } from './menu'
 import { combos, modifierOptions } from './modifiers'
 import { diningTables } from './structure'
@@ -260,9 +261,27 @@ export const orderLines = pgTable(
     status: orderLineStatus('status').notNull().default('pending'),
     notes: text('notes'),
 
+    /**
+     * Which station is making this, resolved and frozen when the order was
+     * placed.
+     *
+     * Snapshotted rather than looked up live: if someone re-routes desserts
+     * to a new station mid-service, tickets already on the pastry screen must
+     * not silently jump to another one, leaving a half-made dish on a queue
+     * nobody is watching.
+     */
+    kitchenStationId: uuid('kitchen_station_id').references(
+      () => kitchenStations.id,
+      { onDelete: 'set null' },
+    ),
+
     placedAt: timestamp('placed_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
+    /** Set when the kitchen starts it, finishes it, and it reaches the table. */
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    readyAt: timestamp('ready_at', { withTimezone: true }),
+    servedAt: timestamp('served_at', { withTimezone: true }),
     voidedAt: timestamp('voided_at', { withTimezone: true }),
     voidedByUserId: uuid('voided_by_user_id').references(() => users.id, {
       onDelete: 'set null',

@@ -16,6 +16,7 @@ import {
   type AnyPgColumn,
 } from 'drizzle-orm/pg-core'
 
+import { kitchenStations } from './kitchen'
 import { branches, restaurants } from './tenancy'
 import { dinerMenuReadPolicy, tenantPolicy, timestamps } from './_shared'
 
@@ -64,6 +65,15 @@ export const menuCategories = pgTable(
     imageUrl: text('image_url'),
     displayOrder: integer('display_order').notNull().default(0),
     status: menuCategoryStatus('status').notNull().default('active'),
+
+    /**
+     * Where everything in this category is made, unless an item overrides it.
+     * Null falls through to the branch default station.
+     */
+    kitchenStationId: uuid('kitchen_station_id').references(
+      () => kitchenStations.id,
+      { onDelete: 'set null' },
+    ),
 
     ...timestamps,
   },
@@ -232,6 +242,12 @@ export const menuItems = pgTable(
     isFeatured: boolean('is_featured').notNull().default(false),
     isRecommended: boolean('is_recommended').notNull().default(false),
     displayOrder: integer('display_order').notNull().default(0),
+
+    /** Overrides the category's station for this one dish. */
+    kitchenStationId: uuid('kitchen_station_id').references(
+      () => kitchenStations.id,
+      { onDelete: 'set null' },
+    ),
 
     /** Values for `menu_attribute_definitions`, validated on write. */
     attributes: jsonb('attributes')

@@ -15,6 +15,7 @@ import {
 import { ConflictError, NotFoundError } from '@/lib/errors'
 import { recordAuditIn } from '@/modules/audit/audit.service'
 import type { BranchActorContext } from '@/modules/branch/branch.service'
+import { resolveStationForItem } from '@/modules/kitchen/kitchen.service'
 import { loadItemModifierRulesIn } from '@/modules/modifier/modifier.service'
 import {
   calculateLineTotal,
@@ -90,7 +91,11 @@ export async function placeStaffOrder(
 ): Promise<{ lineIds: string[] }> {
   return withTenant(ctx, async (tx) => {
     const [session] = await tx
-      .select({ id: diningSessions.id, status: diningSessions.status })
+      .select({
+        id: diningSessions.id,
+        status: diningSessions.status,
+        branchId: diningSessions.branchId,
+      })
       .from(diningSessions)
       .where(
         and(
@@ -166,6 +171,14 @@ export async function placeStaffOrder(
         modifierSelections: selections,
       })
 
+      // Frozen at order time, exactly as on the diner path.
+      const kitchenStationId = await resolveStationForItem(
+        tx,
+        ctx.restaurantId,
+        session.branchId,
+        item.id,
+      )
+
       const [created] = await tx
         .insert(orderLines)
         .values({
@@ -173,6 +186,7 @@ export async function placeStaffOrder(
           sessionId,
           memberId: line.memberId ?? null,
           menuItemId: item.id,
+          kitchenStationId,
           nameSnapshot: item.name,
           unitPriceMinor: total.unitPriceMinor,
           quantity: line.quantity,
