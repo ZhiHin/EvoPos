@@ -107,6 +107,7 @@ describe.skipIf(!enabled)('Smart Bill', () => {
       taxRatePercent: 600,
       serviceChargePercent: 1000,
       taxInclusive: false,
+      businessDayStartMinutes: 0,
     })
   })
 

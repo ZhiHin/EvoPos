@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   BookOpen,
+  BarChart3,
   Building2,
   CalendarDays,
   ClipboardList,
@@ -46,6 +47,7 @@ export interface NavItem {
     | 'bookings'
     | 'roster'
     | 'customers'
+    | 'reports'
     | 'takings'
     | 'settings'
 }
@@ -64,6 +66,7 @@ const ICONS = {
   bookings: CalendarDays,
   roster: ClipboardList,
   customers: Users,
+  reports: BarChart3,
   settings: Settings,
 } as const
 

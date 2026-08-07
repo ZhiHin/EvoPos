@@ -152,6 +152,7 @@ describe.skipIf(!enabled)('promotions and loyalty', () => {
       taxRatePercent: 0,
       serviceChargePercent: 0,
       taxInclusive: false,
+      businessDayStartMinutes: 0,
     })
   })
 

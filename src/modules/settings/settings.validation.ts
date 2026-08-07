@@ -39,6 +39,19 @@ export const updateSettingsSchema = z.object({
   taxRatePercent: percentageSchema,
   serviceChargePercent: percentageSchema,
   taxInclusive: z.boolean(),
+  /**
+   * Where the trading day starts, in minutes past local midnight.
+   *
+   * Stopped below 12 hours rather than below 24. A day starting at 14:00 no
+   * longer names the day it belongs to, and the ambiguity would be silent —
+   * every report would be off by one and nothing would say so.
+   */
+  businessDayStartMinutes: z
+    .number()
+    .int('Enter a whole number of minutes')
+    .min(0, 'Cannot be negative')
+    .max(719, 'The trading day must start before midday')
+    .default(0),
 })
 
 export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>

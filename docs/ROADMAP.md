@@ -23,7 +23,7 @@ security considerations, test cases, documentation.
 | **9** | **Promotions & Loyalty** ✅ | Pure rule engine, stacking and priority, usage caps, vouchers, membership tiers, points ledger. Accrual wires into settlement once Phase 11 attaches a member to a bill | 5 |
 | **10** | **Inventory & Suppliers** ✅ | Ingredients, recipes on items and modifiers, auto-deduction and return on void, movement ledger with a proven reconciler, suppliers, purchase orders with partial receiving and weighted-average costing | 2, 5 |
 | **11** | **CRM, Reservations, Staff** ✅ | Bookings with transactional availability, waiting list, customer profiles, roster with conflict-checked publishing, time clock. Closes Phase 9's loyalty accrual | 4 |
-| 12 | Dashboard & Reporting | Real-time operations, sales/profit/tax reports, PDF/Excel/CSV export | 5, 7 |
+| **12** | **Dashboard & Reporting** ✅ | Immutable sales snapshot at settlement, live operations, sales/profit/tax/loss reports, timezone-correct trading days, CSV and real `.xlsx` export, print-to-PDF | 5, 7 |
 | 13 | AI Restaurant Manager | Recommendations with explanations across sales, inventory, ops, customers, finance | 12 |
 | 14 | SaaS & integrations | Plan metering and gating, franchise dashboard, third-party integrations, deploy hardening | all |
 
@@ -44,6 +44,11 @@ a rule engine that does not fit.
 
 **Inventory after menu and orders (10).** Automatic stock deduction is defined
 by recipe-to-menu-item mapping and consumption at order time. Both must exist.
+
+**Reporting after payments (12).** A sales report is an argument about money
+made to a bank or a tax authority, so it has to be built on figures that were
+recorded rather than recomputed — which means bills must already settle before
+there is anything honest to snapshot.
 
 **AI last but one (13).** Recommendations need history. An AI manager with no
 data to manage is a demo.

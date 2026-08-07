@@ -43,6 +43,7 @@ export function SettingsForm({
         taxRatePercent: Number(form.get('taxRatePercent')),
         serviceChargePercent: Number(form.get('serviceChargePercent')),
         taxInclusive,
+        businessDayStartMinutes: Number(form.get('businessDayStartHours')) * 60,
       })
 
       toast.success('Settings saved')
@@ -205,6 +206,53 @@ export function SettingsForm({
             onCheckedChange={setTaxInclusive}
             disabled={readOnly}
           />
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-sm font-medium">Reporting</h2>
+          <p className="text-xs text-muted-foreground">
+            Decides which day a bill counts towards. Does not change any
+            amount.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="businessDayStartHours">Trading day starts at</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              id="businessDayStartHours"
+              name="businessDayStartHours"
+              type="number"
+              required
+              min={0}
+              max={11}
+              step={1}
+              className="w-24"
+              defaultValue={Math.floor(settings.businessDayStartMinutes / 60)}
+              disabled={readOnly}
+              aria-invalid={!!fieldErrors.businessDayStartMinutes}
+            />
+            <span className="text-sm text-muted-foreground">
+              :00 local time
+            </span>
+          </div>
+          {/*
+            A bar closing at 02:00 does not have two trading days either side
+            of midnight; it has one night. Splitting it makes both halves look
+            like a bad night and leaves nothing to reconcile the drawer
+            against.
+          */}
+          <p className="text-xs text-muted-foreground">
+            Leave at 0 for midnight. Set it to 4 if you serve past midnight, so
+            a bill paid at 01:30 counts towards the night before.
+          </p>
+          {fieldErrors.businessDayStartMinutes && (
+            <p className="text-xs text-destructive">
+              {fieldErrors.businessDayStartMinutes}
+            </p>
+          )}
         </div>
       </section>
 

@@ -205,6 +205,90 @@ export async function loadRecipeBookIn(
   return book
 }
 
+/**
+ * Freezes what each line cost to make onto the line itself.
+ *
+ * Consumption movements are merged across a whole order — one movement per
+ * ingredient, not per line — so that concurrent orders lock ingredient rows in
+ * the same sequence and cannot deadlock. That merge is worth keeping, and it
+ * is exactly why the ledger cannot answer "what did this dish cost". This can.
+ *
+ * The figure uses the ingredient cost in force right now, which is the same
+ * cost the movements about to be written will carry. The two agree by
+ * construction, and an integration test asserts it rather than trusting it.
+ *
+ * A line whose item has no recipe is left NULL. Writing zero would report the
+ * dish as free to make, which is a claim about the business rather than a gap
+ * in the data.
+ */
+async function snapshotLineCostsIn(
+  tx: Transaction,
+  restaurantId: string,
+  lines: readonly { id: string; menuItemId: string | null; quantity: number }[],
+  optionsByLine: Map<string, string[]>,
+  book: RecipeBook,
+): Promise<void> {
+  const costed = lines
+    .filter(
+      (line): line is (typeof lines)[number] & { menuItemId: string } =>
+        Boolean(line.menuItemId),
+    )
+    .map((line) => ({
+      id: line.id,
+      requirements: explodeRequirements(
+        [
+          {
+            menuItemId: line.menuItemId,
+            quantity: line.quantity,
+            modifierOptionIds: optionsByLine.get(line.id) ?? [],
+          },
+        ],
+        book,
+      ),
+    }))
+    .filter((line) => line.requirements.length > 0)
+
+  if (costed.length === 0) return
+
+  const ingredientIds = [
+    ...new Set(
+      costed.flatMap((line) => line.requirements.map((r) => r.ingredientId)),
+    ),
+  ]
+
+  const costs = await tx
+    .select({
+      id: ingredients.id,
+      costPerUnitMinor: ingredients.costPerUnitMinor,
+    })
+    .from(ingredients)
+    .where(
+      and(
+        eq(ingredients.restaurantId, restaurantId),
+        inArray(ingredients.id, ingredientIds),
+      ),
+    )
+
+  const costById = new Map(costs.map((row) => [row.id, row.costPerUnitMinor]))
+
+  for (const line of costed) {
+    const costMinor = line.requirements.reduce(
+      (total, requirement) =>
+        total +
+        costOf(
+          requirement.quantityMilli,
+          costById.get(requirement.ingredientId) ?? 0,
+        ),
+      0,
+    )
+
+    await tx
+      .update(orderLines)
+      .set({ costMinor })
+      .where(eq(orderLines.id, line.id))
+  }
+}
+
 export interface StockShortfall {
   ingredientId: string
   name: string
@@ -283,6 +367,8 @@ export async function deductForOrderLines(
 
   const requirements = explodeRequirements(items, book)
   if (requirements.length === 0) return { requirements: [], shortfalls: [] }
+
+  await snapshotLineCostsIn(tx, restaurantId, lines, optionsByLine, book)
 
   const onHand = await tx
     .select({

@@ -353,7 +353,20 @@ async function loadAggregatesIn(
     .select({
       customerId: diningSessions.customerId,
       count: sql<number>`count(*)::int`,
-      lastVisitAt: sql<Date | null>`max(${diningSessions.closedAt})`,
+      /**
+       * `.mapWith` is doing real work here, and its absence was a latent bug
+       * from Phase 11.
+       *
+       * `sql<Date | null>` is a type ASSERTION, not a conversion — it tells
+       * TypeScript what to believe and does nothing at runtime. Drizzle turns
+       * a timestamp into a `Date` in its column mapper, which a raw fragment
+       * never reaches, so this arrived as a string while claiming to be a
+       * Date. It rendered correctly only because the page happened to wrap it
+       * in `new Date(...)`; anything calling `.getTime()` would have thrown.
+       */
+      lastVisitAt: sql<Date | null>`max(${diningSessions.closedAt})`.mapWith(
+        diningSessions.closedAt,
+      ),
     })
     .from(diningSessions)
     .where(

@@ -61,6 +61,21 @@ export const restaurants = pgTable(
     locale: text('locale').notNull().default('en'),
 
     /**
+     * When the trading day begins, in minutes past local midnight.
+     *
+     * A bar that closes at 02:00 does not have two trading days either side
+     * of midnight; it has one night. Reporting it as two splits a single
+     * service in half and makes both halves look like a bad night — and the
+     * manager counting the drawer at 03:00 has no way to reconcile against
+     * either figure.
+     *
+     * Zero, the default, is plain midnight and is right for most kitchens.
+     */
+    businessDayStartMinutes: integer('business_day_start_minutes')
+      .notNull()
+      .default(0),
+
+    /**
      * Tax and service charge as integer basis points: 600 = 6.00%.
      *
      * Not a float, and not `numeric` in application code. A 6% tax on a

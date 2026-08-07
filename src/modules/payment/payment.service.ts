@@ -12,6 +12,7 @@ import { recordAuditIn } from '@/modules/audit/audit.service'
 import type { BranchActorContext } from '@/modules/branch/branch.service'
 import { computeSessionTotals } from '@/modules/pos/pos.service'
 import { earnPointsForSession } from '@/modules/promotion/loyalty.service'
+import { recordSale } from '@/modules/reporting/sales-record.service'
 import { closeSession } from '@/modules/session/session.service'
 import {
   assertPaymentIsAcceptable,
@@ -578,6 +579,20 @@ export async function settleAndCloseSession(
       settlement.paidMinor,
     )
   }
+
+  /**
+   * The financial snapshot, written before the session closes.
+   *
+   * This is the only moment at which the bill's figures and the rates that
+   * produced them are both still true. Reporting recomputes nothing after
+   * this point, so a tax rate changed next quarter cannot restate a return
+   * already filed.
+   *
+   * Idempotent on the session, so a retried close leaves one record. If this
+   * throws, the bill stays open and settled — the safe direction, because a
+   * retry fixes it and nothing has been lost.
+   */
+  await recordSale(ctx, sessionId, settlement.paidMinor)
 
   await closeSession(ctx, sessionId)
 }

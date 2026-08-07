@@ -111,6 +111,7 @@ describe.skipIf(!enabled)('payments', () => {
       taxRatePercent: 0,
       serviceChargePercent: 0,
       taxInclusive: false,
+      businessDayStartMinutes: 0,
     })
   })
 

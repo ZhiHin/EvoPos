@@ -122,6 +122,7 @@ describe.skipIf(!enabled)('POS operations', () => {
       taxRatePercent: 600,
       serviceChargePercent: 1000,
       taxInclusive: false,
+      businessDayStartMinutes: 0,
     })
   })
 

@@ -128,3 +128,56 @@
     @apply font-sans;
   }
 }
+/**
+ * Print.
+ *
+ * PDF export is the browser's own print-to-PDF, so this stylesheet IS the PDF.
+ * A server-rendered PDF would mean either a headless browser in the deployment
+ * or a hand-rolled writer, and neither lays out a table better than the engine
+ * already rendering this page.
+ *
+ * Chrome, and Firefox, drop background colours when printing unless asked, so
+ * anything that carries meaning through fill needs a border instead. The bar
+ * charts are the case that matters: without this they print as blank rows.
+ */
+@media print {
+  /* Navigation, filters and buttons are not part of a report. */
+  header,
+  aside,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* A card split across a page break is a table with its header orphaned. */
+  [data-slot='card'] {
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+
+  table {
+    break-inside: auto;
+  }
+
+  tr {
+    break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  a[href]::after {
+    content: '';
+  }
+}

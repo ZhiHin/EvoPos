@@ -113,6 +113,20 @@
       "when": 1786029902544,
       "tag": "0015_crm",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1786113475814,
+      "tag": "0016_reporting",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1786115202711,
+      "tag": "0017_order_line_cost",
+      "breakpoints": true
     }
   ]
 }

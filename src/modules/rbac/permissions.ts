@@ -220,6 +220,26 @@ export const PERMISSIONS: readonly PermissionDefinition[] = [
   ...define('reconciliation', {
     view: 'View takings and reconcile the drawer',
   }),
+  /**
+   * Reporting is split three ways, because the three are different acts.
+   *
+   * `view` is operational: how many covers, which dishes sell, when the rush
+   * is. A head chef needs it and it reveals nothing about money.
+   *
+   * `financial` is revenue, tax, cost and margin — what the business earns and
+   * what it earns it on. Food cost percentage is the number an owner is most
+   * reluctant to show, and a supplier-facing manager who knows it is in a
+   * different negotiation.
+   *
+   * `export` is separate from both because downloading is not reading. A
+   * report on screen is bounded by the session; a spreadsheet leaves with
+   * whoever downloaded it and outlives their employment.
+   */
+  ...define('report', {
+    view: 'View operational reports: covers, item performance, busy periods',
+    financial: 'View revenue, tax, cost and margin reports',
+    export: 'Download a report as a file',
+  }),
   ...define('bill', {
     view: 'View a bill and how it has been split',
     split: 'Split a bill between the people at a table',
@@ -415,6 +435,15 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'attendance.view',
       'attendance.clock',
       'attendance.edit',
+      /**
+       * A manager runs the reports and takes the numbers to a meeting, so all
+       * three land here. No other template gets any of them by default —
+       * reporting is a management act, and a role that needs it can be given
+       * it deliberately rather than inheriting it by accident.
+       */
+      'report.view',
+      'report.financial',
+      'report.export',
       'audit.view',
       'settings.view',
     ],

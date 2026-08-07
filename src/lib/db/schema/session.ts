@@ -280,6 +280,26 @@ export const orderLines = pgTable(
     quantity: integer('quantity').notNull().default(1),
     lineTotalMinor: integer('line_total_minor').notNull(),
 
+    /**
+     * What this line cost to make, snapshotted when it was ordered.
+     *
+     * Added in Phase 12, and it sits here for the same reason the price does:
+     * an ingredient repriced by tomorrow's delivery must not change what last
+     * night's dish is reported to have cost.
+     *
+     * NULL means the item has no recipe — which is a different fact from a
+     * cost of zero, and the difference is the whole honesty of a margin
+     * report. Zero would say "this dish is free to make"; null says "nobody
+     * has costed it", and the report can then say so out loud.
+     *
+     * The stock ledger remains the truth about what left the shelf. This is
+     * the truth about which dish consumed it, because consumption movements
+     * are merged across a whole order — deliberately, so concurrent orders
+     * lock ingredients in the same sequence — and so cannot be attributed
+     * back to one line.
+     */
+    costMinor: integer('cost_minor'),
+
     status: orderLineStatus('status').notNull().default('pending'),
     notes: text('notes'),
 

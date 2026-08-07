@@ -15,6 +15,8 @@ export interface RestaurantSettings {
   taxRateBasisPoints: number
   serviceChargeBasisPoints: number
   taxInclusive: boolean
+  /** Minutes past local midnight at which the trading day begins. */
+  businessDayStartMinutes: number
 }
 
 const SETTINGS_COLUMNS = {
@@ -25,6 +27,7 @@ const SETTINGS_COLUMNS = {
   taxRateBasisPoints: restaurants.taxRateBasisPoints,
   serviceChargeBasisPoints: restaurants.serviceChargeBasisPoints,
   taxInclusive: restaurants.taxInclusive,
+  businessDayStartMinutes: restaurants.businessDayStartMinutes,
 } as const
 
 async function findSettingsIn(
@@ -86,6 +89,7 @@ export async function updateSettings(
       taxRateBasisPoints: input.taxRatePercent,
       serviceChargeBasisPoints: input.serviceChargePercent,
       taxInclusive: input.taxInclusive,
+      businessDayStartMinutes: input.businessDayStartMinutes,
     }
 
     await tx
