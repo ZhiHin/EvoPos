@@ -36,6 +36,32 @@ const EnvSchema = z
      * else. See `src/modules/advisor/narrator.ts`.
      */
     ANTHROPIC_API_KEY: z.string().optional(),
+
+    /**
+     * Shared secret a scheduler presents to drain the webhook queue.
+     *
+     * Deliberately not `AUTH_SECRET`: this value has to be handed to whatever
+     * runs the schedule, and a secret that also signs every session token is
+     * not one to spread around. Unset closes the endpoint entirely, which is
+     * the right default for a deployment that has not set up a scheduler.
+     */
+    WEBHOOK_DRAIN_SECRET: z.string().min(24).optional(),
+
+    /**
+     * SMTP, for the transactional mail Phase 0 could only print.
+     *
+     * One connection URL rather than five separate values, so a deployment
+     * cannot end up half-configured — a host with no credentials, or
+     * credentials pointing at no host, are both states somebody would
+     * otherwise reach and only discover on the first password reset.
+     */
+    SMTP_URL: z.string().optional(),
+    SMTP_FROM: z.string().optional(),
+  })
+  .refine((v) => !!v.SMTP_URL === !!v.SMTP_FROM, {
+    message:
+      'SMTP_URL and SMTP_FROM must be set together. A configured server with no From address sends nothing.',
+    path: ['SMTP_FROM'],
   })
   .refine(
     (v) => !!v.GOOGLE_CLIENT_ID === !!v.GOOGLE_CLIENT_SECRET,

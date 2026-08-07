@@ -12,6 +12,7 @@ import {
 } from '@/lib/db/schema'
 import { ConflictError, NotFoundError, ValidationError } from '@/lib/errors'
 import { recordAuditIn } from '@/modules/audit/audit.service'
+import { assertQuota } from '@/modules/billing/billing.service'
 import type { BranchActorContext } from '@/modules/branch/branch.service'
 import {
   listAttributeDefinitionsIn,
@@ -244,6 +245,9 @@ export async function createItem(
   ctx: BranchActorContext,
   input: CreateItemInput,
 ): Promise<{ id: string }> {
+  // The plan's ceiling, in the service so every create path shares it.
+  await assertQuota(ctx, 'menuItems')
+
   return withTenant(ctx, async (tx) => {
     await assertReferencesBelongToTenant(tx, ctx.restaurantId, {
       categoryId: input.categoryId,

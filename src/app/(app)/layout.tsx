@@ -102,6 +102,21 @@ export default async function AppLayout({ children }: LayoutProps<'/'>) {
           },
         ]
       : []),
+    ...(ctx.tenant.permissions.has('report.financial')
+      ? [{ href: '/group', label: 'Group', icon: 'group' as const }]
+      : []),
+    ...(ctx.tenant.permissions.has('integration.view')
+      ? [
+          {
+            href: '/integrations',
+            label: 'Integrations',
+            icon: 'integrations' as const,
+          },
+        ]
+      : []),
+    ...(ctx.tenant.permissions.has('billing.view')
+      ? [{ href: '/plan', label: 'Plan', icon: 'plan' as const }]
+      : []),
     ...(ctx.tenant.permissions.has('settings.view')
       ? [{ href: '/settings', label: 'Settings', icon: 'settings' as const }]
       : []),

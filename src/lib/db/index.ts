@@ -131,6 +131,33 @@ export async function withQrToken<T>(
   })
 }
 
+/**
+ * API key lookup — the bootstrap that establishes a machine's tenant.
+ *
+ * Same shape and same reasoning as `withQrToken`: the key row has to be read
+ * before any tenant context exists, because the key is what determines the
+ * tenant. Only `api_keys_token_lookup` matches here, and it matches exactly
+ * the one row bearing this hash.
+ *
+ * Tenant and actor are cleared rather than left alone. On a pooled connection
+ * they would otherwise be whatever the previous transaction set, which would
+ * silently widen what an unauthenticated lookup can see.
+ */
+export async function withApiKeyLookup<T>(
+  tokenHash: string,
+  fn: (tx: Transaction) => Promise<T>,
+): Promise<T> {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`
+      select
+        set_config('app.tenant_id', '', true),
+        set_config('app.user_id', '', true),
+        set_config('app.api_key_hash', ${tokenHash}, true)
+    `)
+    return fn(tx)
+  })
+}
+
 export interface DinerContext {
   memberId: string
   sessionId: string

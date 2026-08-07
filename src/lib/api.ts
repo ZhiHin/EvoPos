@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server'
 import { ZodError } from 'zod'
 
-import { AppError, ForbiddenError, isAppError } from './errors'
+import {
+  AppError,
+  ForbiddenError,
+  isAppError,
+  PlanLimitError,
+} from './errors'
 import { env, isProduction } from './env'
 
 /**
@@ -50,6 +55,14 @@ export function toErrorResponse(error: unknown): NextResponse<ApiErrorBody> {
           code: error.code,
           message: error.message,
           ...(error.details ? { details: error.details } : {}),
+          /**
+           * Plan refusals carry where to go next. Without it a client can
+           * only say "upgrade required", which leaves the customer to work
+           * out which plan would have allowed what they just tried.
+           */
+          ...(error instanceof PlanLimitError && error.upgradeTo
+            ? { upgradeTo: error.upgradeTo }
+            : {}),
         },
       },
       { status: error.status },
@@ -96,6 +109,24 @@ export function withRoute<Args extends unknown[]>(
  * flow this endpoint is written for.
  */
 export function assertSameOrigin(request: Request): void {
+  /**
+   * A bearer token is exempt, and this is a reasoning point rather than a
+   * convenience.
+   *
+   * CSRF exists because a cookie is *ambient authority*: the browser attaches
+   * it to a cross-site request the user never intended to make. An
+   * `Authorization` header is not ambient — nothing attaches it automatically,
+   * so a malicious page cannot cause one to be sent. The check is inapplicable
+   * here, not merely inconvenient, and requiring an Origin header of a machine
+   * client would make every write endpoint unreachable by an API key for no
+   * security gain.
+   */
+  if (
+    request.headers.get('authorization')?.toLowerCase().startsWith('bearer ')
+  ) {
+    return
+  }
+
   const origin = request.headers.get('origin')
 
   if (!origin) {

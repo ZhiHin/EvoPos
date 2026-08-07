@@ -4,9 +4,16 @@ A multi-tenant restaurant operating system. Not a till with reports bolted on �
 the Dining Session is the core object, and the Smart Bill engine is the reason
 the product exists.
 
-**Status: Phase 0 (Foundation) complete.** Authentication, tenancy, RBAC and the
-audit trail work end to end. Menus, orders, kitchen and Smart Bill are later
-phases — see [`docs/ROADMAP.md`](docs/ROADMAP.md).
+**Status: all 15 phases complete.** Tenancy and row-level security, the menu
+engine, dining sessions and QR ordering, Smart Bill splitting, payments, the
+kitchen display, promotions and loyalty, inventory and purchasing, CRM,
+reservations and staff, reporting, the advisor, and the SaaS surface.
+
+**64 tables, 92 RLS policies, 121 permissions, 767 tests.**
+
+Each phase has its own README covering what it delivers, what was verified,
+and — at the end of every one — the gaps it deliberately left open. Start with
+[`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ---
 
@@ -78,6 +85,9 @@ than failing later on the first request that happens to need a missing value.
 | `GOOGLE_CLIENT_ID` | no | Google sign-in. Both blank disables it |
 | `GOOGLE_CLIENT_SECRET` | no | Must be set together with the ID |
 | `ANTHROPIC_API_KEY` | no | Lets the advisor's summary paragraph be written by Claude. Every figure and recommendation is computed without it |
+| `SMTP_URL` | no | `smtps://user:pass@host:465`. Must be set with `SMTP_FROM` |
+| `SMTP_FROM` | no | The From address. Without both, production refuses to send rather than dropping mail |
+| `WEBHOOK_DRAIN_SECRET` | no | Bearer token a scheduler presents to `/api/webhooks/drain`. Unset closes the endpoint |
 
 ```
 NODE_ENV=development
@@ -92,6 +102,10 @@ GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 
 ANTHROPIC_API_KEY=
+
+SMTP_URL=
+SMTP_FROM=
+WEBHOOK_DRAIN_SECRET=
 ```
 
 Passwords are the ones you set in `scripts/bootstrap.sql`. Generate a secret
@@ -146,6 +160,7 @@ transaction.
 | `npm run db:seed` | Sync the permission registry |
 | `npm run db:studio` | Drizzle Studio |
 | `npm run db:verify` | Assert the runtime role is subject to RLS |
+| `npm run db:counts` | Count tables, RLS policies and permissions |
 
 Integration tests need a live database and are skipped otherwise:
 
@@ -166,19 +181,25 @@ application sees — a fast way to sanity-check a policy.
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | All 15 phases and their dependencies |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Module conventions, layering, how to add a module |
 | [`docs/phase-0/`](docs/phase-0/) | Phase 0 artifacts: requirements, ER diagram, API spec, business rules, screens, validation, security, tests |
-| `docs/phase-1/` … [`docs/phase-13/`](docs/phase-13/) | One README per shipped phase: what it delivers, what was verified, and the gaps it left open |
+| `docs/phase-1/` … [`docs/phase-14/`](docs/phase-14/) | One README per shipped phase: what it delivers, what was verified, and the gaps it left open |
 
 ---
 
-## Known limitations in Phase 0
+## Known limitations
 
-Stated plainly rather than discovered later:
+Stated plainly rather than discovered later. The first two were named in
+Phase 0 and closed in Phase 14; the rest are still open.
 
-- **Rate limiting is in-process.** Behind more than one instance the effective
-  limit multiplies by instance count, and a deploy resets every window. Swap
-  `src/lib/rate-limit.ts` for Redis before scaling horizontally.
-- **No email provider.** `ConsoleEmailTransport` prints reset links to the
-  server log. Production throws rather than silently dropping mail.
+- ~~**Rate limiting is in-process.**~~ **Closed in Phase 14.** The counter now
+  lives in Postgres, so the limit means the same thing behind any number of
+  instances.
+- ~~**No email provider.**~~ **Closed in Phase 14.** SMTP, via `SMTP_URL`.
+  With none configured, production still refuses to send rather than silently
+  dropping mail.
+- **No payment provider.** Plans are selected and enforced; nothing charges a
+  card. See [`docs/phase-14/`](docs/phase-14/).
+- **The webhook queue needs an external scheduler.** Next.js has no process to
+  own a background worker. Something must POST to `/api/webhooks/drain`.
 - **Identity tables are not RLS-protected.** `users`, `sessions`,
   `oauth_accounts` and `verification_tokens` are read before a tenant context
   can exist. Deliberate, and explained in

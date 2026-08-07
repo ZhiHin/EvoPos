@@ -48,6 +48,25 @@ export const currentQrToken = (): SQL =>
   sql`nullif(current_setting('app.qr_token', true), '')`
 
 /**
+ * The API key hash a machine request is presenting.
+ *
+ * The same bootstrap problem as `app.qr_token`, and the same shape of answer:
+ * the lookup that authenticates a key has to read the key row before any
+ * tenant context exists — the key is what establishes the tenant — so a policy
+ * keyed on the hash lets exactly that one row be read and nothing else.
+ *
+ * The alternative was to leave `api_keys` unprotected, the way the identity
+ * tables are. That would have been defensible (only hashes are stored) but it
+ * would put a tenant-scoped table outside the isolation model for the sake of
+ * one query, and the precedent is worse than the query.
+ *
+ * Not cast to uuid: an HMAC is opaque base64url text, and casting would raise
+ * on malformed input instead of quietly matching nothing.
+ */
+export const currentApiKeyHash = (): SQL =>
+  sql`nullif(current_setting('app.api_key_hash', true), '')`
+
+/**
  * Diner context — the fourth and last way into this database.
  *
  * A diner scanning a QR is not a user and belongs to no tenant. They must

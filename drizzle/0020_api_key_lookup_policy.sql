@@ -1,0 +1,1 @@
+CREATE POLICY "api_keys_token_lookup" ON "api_keys" AS PERMISSIVE FOR SELECT TO "evoapp" USING ("api_keys"."token_hash" = nullif(current_setting('app.api_key_hash', true), ''));

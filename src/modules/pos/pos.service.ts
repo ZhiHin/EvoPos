@@ -19,6 +19,7 @@ import {
   deductForOrderLines,
   type StockShortfall,
 } from '@/modules/inventory/inventory.service'
+import { enqueueEventIn } from '@/modules/integration/webhook.service'
 import { resolveStationForItem } from '@/modules/kitchen/kitchen.service'
 import { loadItemModifierRulesIn } from '@/modules/modifier/modifier.service'
 import {
@@ -254,6 +255,28 @@ export async function placeStaffOrder(
       after: { lineCount: lineIds.length },
       ipAddress: ctx.ipAddress,
       userAgent: ctx.userAgent,
+    })
+
+    /**
+     * Queued in the same transaction as the lines, so a subscriber is never
+     * told about an order that was rolled back — and an order is never placed
+     * without the subscriber being told.
+     */
+    await enqueueEventIn(tx, ctx.restaurantId, 'order.placed', {
+      sessionId,
+      branchId: session.branchId,
+      lineIds,
+      /**
+       * A shortfall means the kitchen is cooking something the books say it
+       * does not have. Included because an inventory integration wants to know
+       * that immediately, not at the next stock count.
+       */
+      shortfalls: shortfalls.map((s) => ({
+        ingredientId: s.ingredientId,
+        name: s.name,
+        shortMilli: s.shortMilli,
+      })),
+      placedAt: new Date().toISOString(),
     })
 
     return { lineIds, shortfalls }

@@ -14,6 +14,7 @@ export type AppErrorCode =
   | 'VALIDATION_FAILED'
   | 'CONFLICT'
   | 'RATE_LIMITED'
+  | 'PLAN_LIMIT'
   | 'INTERNAL'
 
 export class AppError extends Error {
@@ -87,6 +88,27 @@ export class RateLimitError extends AppError {
   constructor(message = 'Too many attempts. Try again shortly.') {
     super('RATE_LIMITED', message, 429)
     this.name = 'RateLimitError'
+  }
+}
+
+/**
+ * The plan does not include this, or its allowance is used up.
+ *
+ * `402 Payment Required` rather than 403, because the two need different
+ * answers: a 403 means ask an administrator for permission, and this means
+ * change the plan. A client that cannot tell them apart shows the wrong
+ * message to the one person who could actually resolve it.
+ *
+ * `upgradeTo` rides along so the UI can link straight to the plan that would
+ * allow it rather than making the customer work out which one.
+ */
+export class PlanLimitError extends AppError {
+  readonly upgradeTo: string | null
+
+  constructor(message: string, upgradeTo: string | null = null) {
+    super('PLAN_LIMIT', message, 402)
+    this.name = 'PlanLimitError'
+    this.upgradeTo = upgradeTo
   }
 }
 

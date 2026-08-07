@@ -25,7 +25,7 @@ security considerations, test cases, documentation.
 | **11** | **CRM, Reservations, Staff** ✅ | Bookings with transactional availability, waiting list, customer profiles, roster with conflict-checked publishing, time clock. Closes Phase 9's loyalty accrual | 4 |
 | **12** | **Dashboard & Reporting** ✅ | Immutable sales snapshot at settlement, live operations, sales/profit/tax/loss reports, timezone-correct trading days, CSV and real `.xlsx` export, print-to-PDF | 5, 7 |
 | **13** | **AI Restaurant Manager** ✅ | Pure insight engine across 6 domains, menu engineering matrix, evidence and confidence on every finding, dismissals with a reason. A model writes the summary paragraph and never a number | 12 |
-| 14 | SaaS & integrations | Plan metering and gating, franchise dashboard, third-party integrations, deploy hardening | all |
+| **14** | **SaaS & integrations** ✅ | Plan limits enforced at the service layer, scoped API keys, signed outbound webhooks, cross-site comparison, security headers. Closes Phase 0's in-process rate limiter and missing email provider | all |
 
 ## Why this order
 

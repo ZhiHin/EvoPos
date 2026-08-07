@@ -7,9 +7,12 @@ import {
   BarChart3,
   Building2,
   CalendarDays,
+  CreditCard,
   ClipboardList,
   LayoutDashboard,
+  Network,
   Package,
+  Plug,
   Settings,
   SlidersHorizontal,
   Sparkles,
@@ -51,6 +54,9 @@ export interface NavItem {
     | 'advisor'
     | 'reports'
     | 'takings'
+    | 'group'
+    | 'integrations'
+    | 'plan'
     | 'settings'
 }
 
@@ -70,6 +76,9 @@ const ICONS = {
   customers: Users,
   advisor: Sparkles,
   reports: BarChart3,
+  group: Network,
+  integrations: Plug,
+  plan: CreditCard,
   settings: Settings,
 } as const
 

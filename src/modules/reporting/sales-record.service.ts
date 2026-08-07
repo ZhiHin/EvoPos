@@ -10,6 +10,7 @@ import {
 } from '@/lib/db/schema'
 import { NotFoundError } from '@/lib/errors'
 import type { BranchActorContext } from '@/modules/branch/branch.service'
+import { enqueueEventIn } from '@/modules/integration/webhook.service'
 import { computeSessionTotals } from '@/modules/pos/pos.service'
 
 /**
@@ -152,5 +153,27 @@ export async function recordSale(
        * current — reintroducing exactly the drift this table exists to stop.
        */
       .onConflictDoNothing({ target: salesRecords.sessionId })
+
+    /**
+     * Told to anyone subscribed, in the same transaction as the record itself
+     * — so there is no window in which a webhook describes a bill that was
+     * never written, or a bill exists that nobody was told about.
+     *
+     * Queued, not sent. A customer's slow endpoint must not be able to make
+     * settling a bill slow, and must certainly not be able to make it fail.
+     */
+    await enqueueEventIn(tx, ctx.restaurantId, 'bill.settled', {
+      sessionId,
+      branchId: session.branchId,
+      type: session.type,
+      covers: session.guestCount,
+      subtotalMinor: totals.subtotalMinor,
+      discountMinor: totals.discountMinor,
+      serviceChargeMinor: totals.serviceChargeMinor,
+      taxMinor: totals.taxMinor,
+      totalMinor: totals.totalMinor,
+      paidMinor,
+      settledAt: new Date().toISOString(),
+    })
   })
 }

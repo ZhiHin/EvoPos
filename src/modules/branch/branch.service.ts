@@ -4,6 +4,7 @@ import { withTenant } from '@/lib/db'
 import { branches } from '@/lib/db/schema'
 import { ConflictError, NotFoundError } from '@/lib/errors'
 import { recordAuditIn } from '@/modules/audit/audit.service'
+import { assertQuota } from '@/modules/billing/billing.service'
 import {
   findBranchByCodeIn,
   findBranchIn,
@@ -46,6 +47,15 @@ export async function createBranch(
   ctx: BranchActorContext,
   input: CreateBranchInput,
 ): Promise<{ id: string }> {
+  /**
+   * The plan's ceiling, checked before anything is written.
+   *
+   * Here in the service rather than in the route, so the same limit holds
+   * whether a branch is created from the UI, from an API key, or from an
+   * import script somebody writes next year.
+   */
+  await assertQuota(ctx, 'branches')
+
   return withTenant(ctx, async (tx) => {
     /**
      * Checked explicitly as well as by the unique index. The index is the

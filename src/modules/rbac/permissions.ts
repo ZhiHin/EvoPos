@@ -304,6 +304,25 @@ export const PERMISSIONS: readonly PermissionDefinition[] = [
     view: 'View the settings centre',
     update: 'Change system settings',
   }),
+  /**
+   * Changing the plan changes what the business is charged, so it is separated
+   * from viewing usage the same way `payment.take` is separated from
+   * `payment.view` — a manager watching how close they are to a limit should
+   * not thereby be able to commit the company to a larger bill.
+   */
+  ...define('billing', {
+    view: 'View the plan and how much of it is being used',
+    manage: 'Change the plan',
+  }),
+  /**
+   * An API key or a webhook sends this restaurant's data somewhere else. That
+   * is a different kind of act from anything inside the building, and the
+   * person who runs the floor is rarely the person who should decide it.
+   */
+  ...define('integration', {
+    view: 'View API keys and webhook endpoints',
+    manage: 'Create and revoke API keys and webhook endpoints',
+  }),
 ] as const
 
 export const PERMISSION_CODES: readonly string[] = PERMISSIONS.map(
@@ -467,6 +486,12 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'insight.view',
       'audit.view',
       'settings.view',
+      /**
+       * A manager sees how close the business is to its limits — that is
+       * operational. Changing the plan, and anything that sends data outside
+       * the building, stays with the owner.
+       */
+      'billing.view',
     ],
   },
   {

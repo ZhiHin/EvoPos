@@ -1,6 +1,11 @@
+import { eq } from 'drizzle-orm'
+import { headers } from 'next/headers'
 import { cache } from 'react'
 
+import { db } from '@/lib/db'
+import { restaurants } from '@/lib/db/schema'
 import { ForbiddenError, UnauthenticatedError } from '@/lib/errors'
+import { resolveApiKey } from '@/modules/integration/api-key.service'
 import {
   readSessionCookie,
   setActiveTenant,
@@ -24,6 +29,15 @@ export interface AuthContext {
   user: AuthenticatedSession['user']
   /** Null when signed in but not yet operating inside a restaurant. */
   tenant: MembershipContext | null
+  /**
+   * Set when the caller is an API key rather than a person.
+   *
+   * Everything downstream — `requirePermission`, the RLS tenant context, the
+   * audit trail — works identically either way. What this exists for is the
+   * handful of places that must NOT be reachable by a machine, and for a
+   * service that wants to record which key acted.
+   */
+  apiKeyId?: string
 }
 
 export interface TenantAuthContext extends AuthContext {
@@ -35,7 +49,92 @@ export interface TenantAuthContext extends AuthContext {
  * six server components which each call this performs one session lookup
  * rather than six. It does not cache across requests.
  */
+/**
+ * Bearer token, if the caller presented one.
+ *
+ * Read from the request headers rather than a cookie, because a machine has no
+ * cookie jar. Deliberately checked BEFORE the session cookie: a request
+ * carrying an explicit `Authorization` header is stating which identity it
+ * wants to act as, and silently preferring an ambient cookie would let a
+ * browser-authenticated developer testing a key see results the key itself
+ * could never produce.
+ */
+async function readBearerToken(): Promise<string | null> {
+  const header = (await headers()).get('authorization')
+  if (!header) return null
+
+  const [scheme, value] = header.split(' ')
+  if (scheme?.toLowerCase() !== 'bearer' || !value) return null
+
+  return value.trim()
+}
+
+/**
+ * Builds a context for an API key.
+ *
+ * The key's own permission set replaces the role's, and every guard downstream
+ * is unchanged — which is the point. A separate `/api/v1` surface with its own
+ * authorisation would be a second place for a permission check to be forgotten.
+ */
+async function keyContext(token: string): Promise<AuthContext | null> {
+  const identity = await resolveApiKey(token)
+  if (!identity) return null
+
+  const [restaurant] = await db
+    .select({
+      id: restaurants.id,
+      name: restaurants.name,
+      slug: restaurants.slug,
+    })
+    .from(restaurants)
+    .where(eq(restaurants.id, identity.restaurantId))
+    .limit(1)
+
+  if (!restaurant) return null
+
+  /**
+   * A synthetic session and user. The audit trail records `actorUserId: null`
+   * for these, and the key id alongside — attributing a machine's action to a
+   * person would put someone's name on something they did not do.
+   */
+  const machine = {
+    id: identity.keyId,
+    email: `api-key@${restaurant.id}`,
+    name: 'API key',
+    avatarUrl: null,
+    status: 'active' as const,
+    emailVerifiedAt: null,
+  }
+
+  return {
+    session: {
+      tokenHash: '',
+      userId: identity.keyId,
+      activeRestaurantId: restaurant.id,
+      activeBranchId: null,
+      expiresAt: new Date(Date.now() + 60_000),
+      user: machine,
+    },
+    user: machine,
+    tenant: {
+      restaurantId: restaurant.id,
+      restaurantName: restaurant.name,
+      restaurantSlug: restaurant.slug,
+      membershipId: identity.keyId,
+      roleId: identity.keyId,
+      roleKey: 'api_key',
+      roleName: 'API key',
+      permissions: identity.permissions,
+      branchIds: [],
+    },
+    apiKeyId: identity.keyId,
+  }
+}
+
 export const getAuthContext = cache(async (): Promise<AuthContext | null> => {
+  const bearer = await readBearerToken()
+  if (bearer) return keyContext(bearer)
+
   const token = await readSessionCookie()
   if (!token) return null
 

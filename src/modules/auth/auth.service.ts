@@ -51,7 +51,7 @@ export async function registerOwner(
   input: RegisterInput,
   metadata: SessionRequestMetadata = {},
 ): Promise<AuthResult> {
-  consume({
+  await consume({
     key: `register:${metadata.ipAddress ?? 'unknown'}`,
     ...RATE_LIMITS.registerByIp,
   })
@@ -116,8 +116,8 @@ export async function login(
   const ipKey = `login:ip:${metadata.ipAddress ?? 'unknown'}`
   const emailKey = `login:email:${input.email}`
 
-  consume({ key: ipKey, ...RATE_LIMITS.loginByIp })
-  consume({ key: emailKey, ...RATE_LIMITS.loginByEmail })
+  await consume({ key: ipKey, ...RATE_LIMITS.loginByIp })
+  await consume({ key: emailKey, ...RATE_LIMITS.loginByEmail })
 
   const invalid = new UnauthenticatedError('Incorrect email or password.')
 
@@ -147,7 +147,7 @@ export async function login(
     )
   }
 
-  reset(emailKey)
+  await reset(emailKey)
 
   await db
     .update(users)
@@ -213,7 +213,7 @@ export async function switchTenant(
  * which addresses have accounts.
  */
 export async function requestPasswordReset(email: string): Promise<void> {
-  consume({
+  await consume({
     key: `reset:${email}`,
     ...RATE_LIMITS.passwordResetByEmail,
   })
