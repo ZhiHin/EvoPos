@@ -26,6 +26,16 @@ const EnvSchema = z
 
     GOOGLE_CLIENT_ID: z.string().optional(),
     GOOGLE_CLIENT_SECRET: z.string().optional(),
+
+    /**
+     * Optional, and the advisor is fully functional without it.
+     *
+     * A model is used for one thing only: writing the advisor's findings up as
+     * a paragraph. Every figure and every recommendation is computed before
+     * the model is called, so leaving this unset changes the prose and nothing
+     * else. See `src/modules/advisor/narrator.ts`.
+     */
+    ANTHROPIC_API_KEY: z.string().optional(),
   })
   .refine(
     (v) => !!v.GOOGLE_CLIENT_ID === !!v.GOOGLE_CLIENT_SECRET,
@@ -59,3 +69,11 @@ export const isGoogleAuthEnabled = Boolean(
 )
 
 export const isProduction = env.NODE_ENV === 'production'
+
+/**
+ * True when the advisor can have its briefing written by a model.
+ *
+ * False is a supported configuration, not a broken one — the findings are
+ * identical either way, and only the paragraph introducing them is plainer.
+ */
+export const isNarratorEnabled = Boolean(env.ANTHROPIC_API_KEY)

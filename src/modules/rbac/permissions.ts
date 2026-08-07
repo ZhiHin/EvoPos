@@ -240,6 +240,21 @@ export const PERMISSIONS: readonly PermissionDefinition[] = [
     financial: 'View revenue, tax, cost and margin reports',
     export: 'Download a report as a file',
   }),
+  /**
+   * The advisor reads across every domain at once — margin, wastage, comps by
+   * person — so seeing it means seeing the financial picture whether or not
+   * any single figure is labelled financial. It is gated accordingly rather
+   * than sitting behind the operational permission.
+   *
+   * Dismissing is separate from reading. A dismissed recommendation stops
+   * being raised, which is a way to make an inconvenient finding disappear —
+   * so it is recorded with a reason and a person, and it is not a capability
+   * everyone who can read the page should hold.
+   */
+  ...define('insight', {
+    view: 'View the advisor’s recommendations and the evidence behind them',
+    dismiss: 'Dismiss or snooze a recommendation',
+  }),
   ...define('bill', {
     view: 'View a bill and how it has been split',
     split: 'Split a bill between the people at a table',
@@ -444,6 +459,12 @@ export const SYSTEM_ROLE_TEMPLATES: readonly RoleTemplate[] = [
       'report.view',
       'report.financial',
       'report.export',
+      /**
+       * A manager gets to read the advisor but not to silence it. Dismissing
+       * is the owner's call, because "that recommendation is wrong" and "I do
+       * not want that recommendation seen" look identical from the outside.
+       */
+      'insight.view',
       'audit.view',
       'settings.view',
     ],

@@ -77,6 +77,7 @@ than failing later on the first request that happens to need a missing value.
 | `AUTH_SECRET` | **yes** | HMAC key for session and one-time tokens. Min 32 chars |
 | `GOOGLE_CLIENT_ID` | no | Google sign-in. Both blank disables it |
 | `GOOGLE_CLIENT_SECRET` | no | Must be set together with the ID |
+| `ANTHROPIC_API_KEY` | no | Lets the advisor's summary paragraph be written by Claude. Every figure and recommendation is computed without it |
 
 ```
 NODE_ENV=development
@@ -89,6 +90,8 @@ AUTH_SECRET=
 
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
+
+ANTHROPIC_API_KEY=
 ```
 
 Passwords are the ones you set in `scripts/bootstrap.sql`. Generate a secret
@@ -163,7 +166,7 @@ application sees — a fast way to sanity-check a policy.
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | All 15 phases and their dependencies |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Module conventions, layering, how to add a module |
 | [`docs/phase-0/`](docs/phase-0/) | Phase 0 artifacts: requirements, ER diagram, API spec, business rules, screens, validation, security, tests |
-| `docs/phase-1/` … [`docs/phase-12/`](docs/phase-12/) | One README per shipped phase: what it delivers, what was verified, and the gaps it left open |
+| `docs/phase-1/` … [`docs/phase-13/`](docs/phase-13/) | One README per shipped phase: what it delivers, what was verified, and the gaps it left open |
 
 ---
 

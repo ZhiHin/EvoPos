@@ -12,6 +12,7 @@ import {
   Package,
   Settings,
   SlidersHorizontal,
+  Sparkles,
   Table2,
   TicketPercent,
   Users,
@@ -47,6 +48,7 @@ export interface NavItem {
     | 'bookings'
     | 'roster'
     | 'customers'
+    | 'advisor'
     | 'reports'
     | 'takings'
     | 'settings'
@@ -66,6 +68,7 @@ const ICONS = {
   bookings: CalendarDays,
   roster: ClipboardList,
   customers: Users,
+  advisor: Sparkles,
   reports: BarChart3,
   settings: Settings,
 } as const
